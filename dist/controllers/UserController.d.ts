@@ -1,0 +1,21 @@
+import { Request, Response, NextFunction } from "express";
+export declare const getProfile: (req: Request, res: Response, next: NextFunction) => void;
+export declare const updateProfile: (req: Request, res: Response, next: NextFunction) => void;
+export declare const uploadAvatar: (req: Request, res: Response, next: NextFunction) => void;
+export declare const changePassword: (req: Request, res: Response, next: NextFunction) => void;
+export declare const getUserDashboard: (req: Request, res: Response, next: NextFunction) => void;
+export declare const getUserWishlist: (req: Request, res: Response, next: NextFunction) => void;
+export declare const addToWishlist: (req: Request, res: Response, next: NextFunction) => void;
+export declare const removeFromWishlist: (req: Request, res: Response, next: NextFunction) => void;
+export declare const getCart: (req: Request, res: Response, next: NextFunction) => void;
+export declare const addToCart: (req: Request, res: Response, next: NextFunction) => void;
+export declare const updateCartItem: (req: Request, res: Response, next: NextFunction) => void;
+export declare const removeFromCart: (req: Request, res: Response, next: NextFunction) => void;
+export declare const clearCart: (req: Request, res: Response, next: NextFunction) => void;
+export declare const deleteAccount: (req: Request, res: Response, next: NextFunction) => void;
+export declare const getAddresses: (req: Request, res: Response, next: NextFunction) => void;
+export declare const addAddress: (req: Request, res: Response, next: NextFunction) => void;
+export declare const updateAddress: (req: Request, res: Response, next: NextFunction) => void;
+export declare const deleteAddress: (req: Request, res: Response, next: NextFunction) => void;
+export declare const setDefaultAddress: (req: Request, res: Response, next: NextFunction) => void;
+//# sourceMappingURL=UserController.d.ts.map
