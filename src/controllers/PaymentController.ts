@@ -1,12 +1,12 @@
 import { Request, Response, NextFunction } from "express";
 import crypto from "crypto";
-import { Payment } from "@/models/Payment";
-import { Order } from "@/models/Order";
-import { Product } from "@/models/Product";
-import { User } from "@/models/User";
-import { asyncHandler, createError } from "@/middleware/errorHandler";
-import { SocketService } from "@/services/SocketService";
-import config from "@/config/config";
+import { Payment } from "../models/Payment";
+import { Order } from "../models/Order";
+import { Product } from "../models/Product";
+import { User } from "../models/User";
+import { asyncHandler, createError } from "../middleware/errorHandler";
+import { SocketService } from "../services/SocketService";
+import config from "../config/config";
 import { createNotification } from "./NotificationController";
 
 const generatePaymentReference = (): string => {

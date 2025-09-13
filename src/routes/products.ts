@@ -1,6 +1,6 @@
 import { Router } from "express";
 import multer from "multer";
-import { authenticate, authorize } from "@/middleware/auth";
+import { authenticate, authorize } from "../middleware/auth";
 import {
   getProducts,
   getProductById,
@@ -9,11 +9,11 @@ import {
   updateProduct,
   deleteProduct,
   downloadProductFile,
-} from "@/controllers/productController";
+} from "../controllers/productController";
 import {
   accessFileWithToken,
   downloadRateLimit,
-} from "@/services/downloadSecurityService";
+} from "../services/downloadSecurityService";
 
 const router: Router = Router();
 

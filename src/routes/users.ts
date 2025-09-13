@@ -1,6 +1,6 @@
 import { Router } from "express";
 import multer from "multer";
-import { authenticate } from "@/middleware/auth";
+import { authenticate } from "../middleware/auth";
 import {
   getProfile,
   updateProfile,
@@ -21,7 +21,7 @@ import {
   updateAddress,
   deleteAddress,
   setDefaultAddress,
-} from "@/controllers/UserController";
+} from "../controllers/UserController";
 
 const router: Router = Router();
 

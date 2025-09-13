@@ -86,10 +86,27 @@ const vendorSchema = new mongoose_1.Schema({
         type: Boolean,
         default: true,
     },
+    isSponsored: {
+        type: Boolean,
+        default: false,
+    },
+    walletId: {
+        type: mongoose_1.Schema.Types.ObjectId,
+        required: true,
+        ref: "Wallet",
+    },
+    sponsorshipStartDate: {
+        type: Date,
+    },
+    sponsorshipEndDate: {
+        type: Date,
+    },
 }, {
     timestamps: true,
 });
 vendorSchema.index({ verificationStatus: 1 });
 vendorSchema.index({ isActive: 1 });
+vendorSchema.index({ isSponsored: 1 });
+vendorSchema.index({ sponsorshipEndDate: 1 });
 exports.Vendor = mongoose_1.default.model("Vendor", vendorSchema);
 //# sourceMappingURL=Vendor.js.map

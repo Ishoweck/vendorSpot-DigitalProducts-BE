@@ -21,6 +21,7 @@ exports.cloudinaryService = {
             };
         }
         catch (error) {
+            console.error(error);
             throw new Error("File upload failed");
         }
     },

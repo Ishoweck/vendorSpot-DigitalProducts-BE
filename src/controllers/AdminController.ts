@@ -1,14 +1,14 @@
 import { Request, Response, NextFunction } from "express";
-import { User } from "@/models/User";
-import { Vendor } from "@/models/Vendor"; 
-import { Wallet } from "@/models/Wallet"; 
+import { User } from "../models/User";
+import { Vendor } from "../models/Vendor"; 
+import { Wallet } from "../models/Wallet"; 
 import { Review } from "../models/Review";
 import { Product } from "../models/Product";
 import { Payment } from "../models/Payment";
 import { Order, IOrder } from "../models/Order";
 import { Category, ICategory } from "../models/Category";
 
-import { asyncHandler, createError } from "@/middleware/errorHandler";
+import { asyncHandler, createError } from "../middleware/errorHandler";
 import mongoose, { FilterQuery } from "mongoose";
 
 interface QueryFilters {

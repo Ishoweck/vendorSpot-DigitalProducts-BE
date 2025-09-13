@@ -5,8 +5,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.downloadRateLimit = exports.logDownloadActivity = exports.accessFileWithToken = exports.validateDownloadToken = exports.generateDownloadToken = void 0;
 const crypto_1 = __importDefault(require("crypto"));
-const Product_1 = require("@/models/Product");
-const errorHandler_1 = require("@/middleware/errorHandler");
+const Product_1 = require("../models/Product");
+const errorHandler_1 = require("../middleware/errorHandler");
 const downloadTokens = new Map();
 const generateDownloadToken = (productId, orderId, userId, downloadCount = 0) => {
     const token = crypto_1.default.randomBytes(32).toString("hex");

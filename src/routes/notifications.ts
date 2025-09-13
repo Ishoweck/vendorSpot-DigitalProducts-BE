@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { authenticate, authorize } from "@/middleware/auth";
+import { authenticate, authorize } from "../middleware/auth";
 import {
   getUserNotifications,
   markNotificationAsRead,
@@ -9,7 +9,7 @@ import {
   getNotificationSettings,
   updateNotificationSettings,
   sendBulkNotification
-} from "@/controllers/NotificationController";
+} from "../controllers/NotificationController";
 
 const router: Router = Router();
 

@@ -9,9 +9,9 @@ import {
   resetPassword,
   verifyEmailOTP,
   resendVerificationOTP,
-} from "@/controllers/authController";
-import { authenticate } from "@/middleware/auth";
-import { validate } from "@/middleware/validate";
+} from "../controllers/authController";
+import { authenticate } from "../middleware/auth";
+import { validate } from "../middleware/validate";
 
 const router: Router = Router();
 

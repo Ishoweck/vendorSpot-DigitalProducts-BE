@@ -1,10 +1,10 @@
 import { Router } from "express";
-import { authenticate, authorize } from "@/middleware/auth";
+import { authenticate, authorize } from "../middleware/auth";
 import {
   getCategories,
   getCategoryById,
   createCategory,
-} from "@/controllers/categoryController";
+} from "../controllers/categoryController";
 
 const router: Router = Router();
 

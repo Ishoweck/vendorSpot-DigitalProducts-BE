@@ -1,6 +1,6 @@
 import { Resend } from "resend";
-import { config } from "@/config/config";
-import { logger } from "@/utils/logger";
+import { config } from "../config/config";
+import { logger } from "../utils/logger";
 
 class EmailService {
   private resend: Resend | null = null;

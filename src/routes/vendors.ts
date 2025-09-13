@@ -1,6 +1,6 @@
 import { Router } from "express";
 import multer from "multer";
-import { authenticate, authorize } from "@/middleware/auth";
+import { authenticate, authorize } from "../middleware/auth";
 import {
   createVendorProfile,
   getVendorProfile,
@@ -11,7 +11,7 @@ import {
   getVendorById,
   verifyVendor,
   getVendorByBusinessName,
-} from "@/controllers/VendorController";
+} from "../controllers/VendorController";
 
 const router: Router = Router();
 

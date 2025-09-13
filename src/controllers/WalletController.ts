@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
-import { Wallet } from "@/models/Wallet";
-import { Vendor } from "@/models/Vendor";
-import { asyncHandler, createError } from "@/middleware/errorHandler";
+import { Wallet } from "../models/Wallet";
+import { Vendor } from "../models/Vendor";
+import { asyncHandler, createError } from "../middleware/errorHandler";
 
 export const getVendorWallet = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {

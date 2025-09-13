@@ -7,15 +7,15 @@ exports.downloadProductFile = exports.deleteProduct = exports.updateProduct = ex
 const url_1 = require("url");
 const mongoose_1 = __importDefault(require("mongoose"));
 const cloudinary_1 = require("cloudinary");
-const Product_1 = require("@/models/Product");
-const Review_1 = require("@/models/Review");
-const Vendor_1 = require("@/models/Vendor");
-const Order_1 = require("@/models/Order");
-const cloudinaryService_1 = require("@/services/cloudinaryService");
-const errorHandler_1 = require("@/middleware/errorHandler");
-const SocketService_1 = require("@/services/SocketService");
+const Product_1 = require("../models/Product");
+const Review_1 = require("../models/Review");
+const Vendor_1 = require("../models/Vendor");
+const Order_1 = require("../models/Order");
+const cloudinaryService_1 = require("../services/cloudinaryService");
+const errorHandler_1 = require("../middleware/errorHandler");
+const SocketService_1 = require("../services/SocketService");
 const NotificationController_1 = require("./NotificationController");
-const downloadSecurityService_1 = require("@/services/downloadSecurityService");
+const downloadSecurityService_1 = require("../services/downloadSecurityService");
 exports.getProducts = (0, errorHandler_1.asyncHandler)(async (req, res, next) => {
     try {
         const page = parseInt(req.query.page) || 1;

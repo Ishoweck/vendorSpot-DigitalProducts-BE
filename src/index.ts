@@ -1,3 +1,4 @@
+import 'module-alias/register';
 import "reflect-metadata";
 import "express-async-errors";
 import express from "express";
@@ -12,23 +13,24 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import { createServer } from "http";
 import { Server } from "socket.io";
-import { config } from "@/config/config";
-import { logger } from "@/utils/logger";
-import { errorHandler } from "@/middleware/errorHandler";
-import { notFoundHandler } from "@/middleware/notFoundHandler";
-import authRoutes from "@/routes/auth";
-import userRoutes from "@/routes/users";
-import vendorRoutes from "@/routes/vendors";
-import adminRoutes from "@/routes/admin";
-import productRoutes from "@/routes/products";
-import categoryRoutes from "@/routes/categories";
-import orderRoutes from "@/routes/orders";
-import paymentRoutes from "@/routes/payments";
-import reviewRoutes from "@/routes/reviews";
-import notificationRoutes from "@/routes/notifications";
-import webhookRoutes from "@/routes/webhooks";
-import { SocketService } from "@/services/SocketService";
-import walletRoutes from "@/routes/wallet";
+import { config } from  "./config/config"  
+import { logger } from  "./utils/logger";
+import { errorHandler } from "./middleware/errorHandler";
+import { notFoundHandler } from "./middleware/notFoundHandler";
+import authRoutes from "./routes/auth";
+import userRoutes from "./routes/users";
+import vendorRoutes from "./routes/vendors";
+import adminRoutes from "./routes/admin";
+import productRoutes from "./routes/products";
+import categoryRoutes from "./routes/categories";
+import orderRoutes from "./routes/orders";
+import paymentRoutes from "./routes/payments";
+import reviewRoutes from "./routes/reviews";
+import notificationRoutes from "./routes/notifications";
+import webhookRoutes from "./routes/webhooks";
+import { SocketService } from "./services/SocketService";
+import walletRoutes from "./routes/wallet";
+
 
 
 dotenv.config();

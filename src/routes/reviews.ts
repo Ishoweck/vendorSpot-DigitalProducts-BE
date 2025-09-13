@@ -1,6 +1,6 @@
 import { Router } from "express";
 import multer from "multer";
-import { authenticate, authorize, optionalAuth } from "@/middleware/auth";
+import { authenticate, authorize, optionalAuth } from "../middleware/auth";
 import {
   createReview,
   getProductReviews,
@@ -10,7 +10,7 @@ import {
   respondToReview,
   markReviewHelpful,
   reportReview,
-} from "@/controllers/ReviewController";
+} from "../controllers/ReviewController";
 
 const router: Router = Router();
 

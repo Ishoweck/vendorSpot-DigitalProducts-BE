@@ -1,9 +1,9 @@
 import { Request, Response, NextFunction } from "express";
-import { Notification } from "@/models/Notification";
-import { User } from "@/models/User";
-import { asyncHandler, createError } from "@/middleware/errorHandler";
-import { SocketService } from "@/services/SocketService";
-import { emailService } from "@/services/emailService";
+import { Notification } from "../models/Notification";
+import { User } from "../models/User";
+import { asyncHandler, createError } from "../middleware/errorHandler";
+import { SocketService } from "../services/SocketService";
+import { emailService } from "../services/emailService";
 
 export const createNotification = async (data: {
   userId: string;

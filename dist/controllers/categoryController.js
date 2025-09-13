@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createCategory = exports.getCategoryById = exports.getCategories = void 0;
-const Category_1 = require("@/models/Category");
-const errorHandler_1 = require("@/middleware/errorHandler");
+const Category_1 = require("../models/Category");
+const errorHandler_1 = require("../middleware/errorHandler");
 exports.getCategories = (0, errorHandler_1.asyncHandler)(async (req, res, next) => {
     const categories = await Category_1.Category.find({ isActive: true }).sort({
         sortOrder: 1,

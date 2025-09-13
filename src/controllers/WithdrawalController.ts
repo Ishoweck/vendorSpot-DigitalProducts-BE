@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
-import { Withdrawal } from "@/models/Withdrawal";
-import { asyncHandler, createError } from "@/middleware/errorHandler";
+import { Withdrawal } from "../models/Withdrawal";
+import { asyncHandler, createError } from "../middleware/errorHandler";
 
 const generateWithdrawalReference = (): string => {
   const timestamp = Date.now().toString();

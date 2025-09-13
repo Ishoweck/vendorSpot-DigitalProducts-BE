@@ -1,14 +1,14 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.setDefaultAddress = exports.deleteAddress = exports.updateAddress = exports.addAddress = exports.getAddresses = exports.deleteAccount = exports.clearCart = exports.removeFromCart = exports.updateCartItem = exports.addToCart = exports.getCart = exports.removeFromWishlist = exports.addToWishlist = exports.getUserWishlist = exports.getUserDashboard = exports.changePassword = exports.uploadAvatar = exports.updateProfile = exports.getProfile = void 0;
-const User_1 = require("@/models/User");
-const Order_1 = require("@/models/Order");
-const Review_1 = require("@/models/Review");
-const Product_1 = require("@/models/Product");
-const cloudinaryService_1 = require("@/services/cloudinaryService");
-const errorHandler_1 = require("@/middleware/errorHandler");
+const User_1 = require("../models/User");
+const Order_1 = require("../models/Order");
+const Review_1 = require("../models/Review");
+const Product_1 = require("../models/Product");
+const cloudinaryService_1 = require("../services/cloudinaryService");
+const errorHandler_1 = require("../middleware/errorHandler");
 const NotificationController_1 = require("./NotificationController");
-const Vendor_1 = require("@/models/Vendor");
+const Vendor_1 = require("../models/Vendor");
 exports.getProfile = (0, errorHandler_1.asyncHandler)(async (req, res, next) => {
     const user = req.user;
     const userProfile = await User_1.User.findById(user._id).select("-password -passwordResetToken -passwordResetExpires -emailVerificationOTP -emailVerificationOTPExpires");

@@ -1,14 +1,14 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
-import { User } from "@/models/User";
-import { Vendor } from "@/models/Vendor";
-import { config } from "@/config/config";
-import { emailService } from "@/services/emailService";
-import { logger } from "@/utils/logger";
-import { asyncHandler, createError } from "@/middleware/errorHandler";
+import { User } from "../models/User";
+import { Vendor } from "../models/Vendor";
+import { config } from "../config/config";
+import { emailService } from "../services/emailService";
+import { logger } from "../utils/logger";
+import { asyncHandler, createError } from "../middleware/errorHandler";
 import { createNotification } from "./NotificationController";
-import { Wallet } from "@/models/Wallet";
+import { Wallet } from "../models/Wallet";
 
 const generateTokens = (userId: string) => {
   const signOptions: jwt.SignOptions = {

@@ -1,11 +1,11 @@
 import { Router } from "express";
-import { authenticate } from "@/middleware/auth";
+import { authenticate } from "../middleware/auth";
 import {
   initializePayment,
   verifyPayment,
   getUserPayments,
   refundPayment,
-} from "@/controllers/PaymentController";
+} from "../controllers/PaymentController";
 
 const router: Router = Router();
 

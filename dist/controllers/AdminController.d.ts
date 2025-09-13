@@ -1,0 +1,26 @@
+import { Request, Response, NextFunction } from "express";
+export declare const getAllUsers: (req: Request, res: Response, next: NextFunction) => void;
+export declare const getUserById: (req: Request, res: Response, next: NextFunction) => void;
+export declare const getAllVendors: (req: Request, res: Response, next: NextFunction) => void;
+export declare const getVendorById: (req: Request, res: Response, next: NextFunction) => void;
+export declare const getWalletByUserId: (req: Request, res: Response, next: NextFunction) => void;
+export declare const updateVendorVerification: (req: Request, res: Response, next: NextFunction) => void;
+export declare const getWalletDetails: (req: Request, res: Response, next: NextFunction) => void;
+export declare const getReviewsForModeration: (req: Request, res: Response, next: NextFunction) => void;
+export declare const moderateReview: (req: Request, res: Response, next: NextFunction) => void;
+export declare const getProducts: (req: Request, res: Response, next: NextFunction) => void;
+export declare const updateProductApproval: (req: Request, res: Response, next: NextFunction) => void;
+export declare const updateProductStatus: (req: Request, res: Response, next: NextFunction) => void;
+export declare const getProductById: (req: Request, res: Response, next: NextFunction) => void;
+export declare const getPayments: (req: Request, res: Response, next: NextFunction) => void;
+export declare const getPaymentById: (req: Request, res: Response, next: NextFunction) => void;
+export declare const updatePaymentStatus: (req: Request, res: Response, next: NextFunction) => void;
+export declare const getOrders: (req: Request, res: Response, next: NextFunction) => void;
+export declare const getOrderById: (req: Request, res: Response, next: NextFunction) => void;
+export declare const updateOrderStatus: (req: Request, res: Response, next: NextFunction) => void;
+export declare const createCategory: (req: Request, res: Response, next: NextFunction) => void;
+export declare const getCategories: (req: Request, res: Response, next: NextFunction) => void;
+export declare const getCategoryById: (req: Request, res: Response, next: NextFunction) => void;
+export declare const updateCategory: (req: Request, res: Response, next: NextFunction) => void;
+export declare const deleteCategory: (req: Request, res: Response, next: NextFunction) => void;
+//# sourceMappingURL=AdminController.d.ts.map

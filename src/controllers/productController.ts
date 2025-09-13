@@ -2,19 +2,19 @@ import { Request, Response, NextFunction } from "express";
 import { URL } from "url";
 import mongoose from "mongoose";
 import { v2 as cloudinary } from "cloudinary";
-import { Product } from "@/models/Product";
-import { Review } from "@/models/Review";
-import { Vendor } from "@/models/Vendor";
-import { Order } from "@/models/Order";
-import { cloudinaryService } from "@/services/cloudinaryService";
-import { asyncHandler, createError } from "@/middleware/errorHandler";
-import { SocketService } from "@/services/SocketService";
+import { Product } from "../models/Product";
+import { Review } from "../models/Review";
+import { Vendor } from "../models/Vendor";
+import { Order } from "../models/Order";
+import { cloudinaryService } from "../services/cloudinaryService";
+import { asyncHandler, createError } from "../middleware/errorHandler";
+import { SocketService } from "../services/SocketService";
 import { createNotification } from "./NotificationController";
 import {
   generateDownloadToken,
   logDownloadActivity,
   DownloadToken,
-} from "@/services/downloadSecurityService";
+} from "../services/downloadSecurityService";
 
 export const getProducts = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {

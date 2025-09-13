@@ -1,14 +1,14 @@
 import { Request, Response, NextFunction } from "express";
-import { Order } from "@/models/Order";
-import { Product } from "@/models/Product";
-import { User } from "@/models/User";
-import { Vendor } from "@/models/Vendor";
-import { Payment } from "@/models/Payment";
-import { asyncHandler, createError } from "@/middleware/errorHandler";
-import { SocketService } from "@/services/SocketService";
+import { Order } from "../models/Order";
+import { Product } from "../models/Product";
+import { User } from "../models/User";
+import { Vendor } from "../models/Vendor";
+import { Payment } from "../models/Payment";
+import { asyncHandler, createError } from "../middleware/errorHandler";
+import { SocketService } from "../services/SocketService";
 import { createNotification } from "./NotificationController";
 import { Wallet , WalletTransactionType} from "../models/Wallet";  // Path to your Wallet model
-import { IVendor } from "@/models/Vendor";  // Correct import for IVendor
+import { IVendor } from "../models/Vendor";  // Correct import for IVendor
 
 const generateOrderNumber = (): string => {
   const timestamp = Date.now().toString();

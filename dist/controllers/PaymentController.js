@@ -4,13 +4,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.refundPayment = exports.getUserPayments = exports.verifyPayment = exports.initializePayment = void 0;
-const Payment_1 = require("@/models/Payment");
-const Order_1 = require("@/models/Order");
-const Product_1 = require("@/models/Product");
-const User_1 = require("@/models/User");
-const errorHandler_1 = require("@/middleware/errorHandler");
-const SocketService_1 = require("@/services/SocketService");
-const config_1 = __importDefault(require("@/config/config"));
+const Payment_1 = require("../models/Payment");
+const Order_1 = require("../models/Order");
+const Product_1 = require("../models/Product");
+const User_1 = require("../models/User");
+const errorHandler_1 = require("../middleware/errorHandler");
+const SocketService_1 = require("../services/SocketService");
+const config_1 = __importDefault(require("../config/config"));
 const NotificationController_1 = require("./NotificationController");
 const generatePaymentReference = () => {
     const timestamp = Date.now().toString();

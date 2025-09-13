@@ -7,4 +7,5 @@ export declare const getVendorSales: (req: Request, res: Response, next: NextFun
 export declare const getAllVendors: (req: Request, res: Response, next: NextFunction) => void;
 export declare const getVendorById: (req: Request, res: Response, next: NextFunction) => void;
 export declare const verifyVendor: (req: Request, res: Response, next: NextFunction) => void;
+export declare const getVendorByBusinessName: (req: Request, res: Response, next: NextFunction) => void;
 //# sourceMappingURL=VendorController.d.ts.map

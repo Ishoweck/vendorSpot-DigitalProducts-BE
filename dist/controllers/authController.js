@@ -6,13 +6,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.resendVerificationOTP = exports.verifyEmailOTP = exports.resetPassword = exports.forgotPassword = exports.refreshToken = exports.logout = exports.login = exports.register = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const crypto_1 = __importDefault(require("crypto"));
-const User_1 = require("@/models/User");
-const Vendor_1 = require("@/models/Vendor");
-const config_1 = require("@/config/config");
-const emailService_1 = require("@/services/emailService");
-const logger_1 = require("@/utils/logger");
-const errorHandler_1 = require("@/middleware/errorHandler");
+const User_1 = require("../models/User");
+const Vendor_1 = require("../models/Vendor");
+const config_1 = require("../config/config");
+const emailService_1 = require("../services/emailService");
+const logger_1 = require("../utils/logger");
+const errorHandler_1 = require("../middleware/errorHandler");
 const NotificationController_1 = require("./NotificationController");
+const Wallet_1 = require("../models/Wallet");
 const generateTokens = (userId) => {
     const signOptions = {
         expiresIn: config_1.config.jwtExpiresIn,
@@ -59,9 +60,16 @@ exports.register = (0, errorHandler_1.asyncHandler)(async (req, res, next) => {
     let vendor = null;
     if (isVendor && businessName) {
         try {
+            const wallet = await Wallet_1.Wallet.create({
+                userId: user._id,
+                availableBalance: 0,
+                totalEarnings: 0,
+                transactions: [],
+            });
             vendor = await Vendor_1.Vendor.create({
                 userId: user._id,
                 businessName,
+                walletId: wallet._id,
             });
             logger_1.logger.info(`Vendor record created for user: ${user.email}`, {
                 userId: String(user._id),

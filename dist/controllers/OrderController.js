@@ -1,13 +1,14 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.cancelOrder = exports.updateOrderStatus = exports.getVendorOrders = exports.getOrderByPaymentReference = exports.getOrderById = exports.getUserOrders = exports.createOrder = void 0;
-const Order_1 = require("@/models/Order");
-const Product_1 = require("@/models/Product");
-const Vendor_1 = require("@/models/Vendor");
-const Payment_1 = require("@/models/Payment");
-const errorHandler_1 = require("@/middleware/errorHandler");
-const SocketService_1 = require("@/services/SocketService");
+const Order_1 = require("../models/Order");
+const Product_1 = require("../models/Product");
+const Vendor_1 = require("../models/Vendor");
+const Payment_1 = require("../models/Payment");
+const errorHandler_1 = require("../middleware/errorHandler");
+const SocketService_1 = require("../services/SocketService");
 const NotificationController_1 = require("./NotificationController");
+const Wallet_1 = require("../models/Wallet");
 const generateOrderNumber = () => {
     const timestamp = Date.now().toString();
     const random = Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -86,46 +87,26 @@ exports.createOrder = (0, errorHandler_1.asyncHandler)(async (req, res, next) =>
     catch (error) {
         console.log("Socket emit error:", error);
     }
-    try {
-        await (0, NotificationController_1.createNotification)({
-            userId: String(user._id),
-            type: "ORDER_CREATED",
-            title: "Order Placed Successfully",
-            message: `Your order #${order.orderNumber} has been placed successfully. Total: ₦${order.total.toLocaleString()}`,
-            category: "ORDER",
-            priority: "NORMAL",
-            channels: ["IN_APP"],
-            data: {
-                orderId: order._id,
-                orderNumber: order.orderNumber,
-                total: order.total,
-            },
-        });
-    }
-    catch (error) {
-        console.error("Failed to create order notification:", error);
-    }
     for (const item of orderItems) {
-        try {
-            await (0, NotificationController_1.createNotification)({
-                userId: item.vendorId.toString(),
-                type: "ORDER_CREATED",
-                title: "New Order Received",
-                message: `New order #${order.orderNumber} for "${item.name}" has been placed`,
-                category: "ORDER",
-                priority: "HIGH",
-                channels: ["IN_APP", "EMAIL"],
-                data: {
-                    orderId: order._id,
-                    orderNumber: order.orderNumber,
-                    productName: item.name,
-                    quantity: item.quantity,
-                    price: item.price,
-                },
-            });
-        }
-        catch (error) {
-            console.error("Failed to create vendor order notification:", error);
+        const vendor = await Vendor_1.Vendor.findById(item.vendorId);
+        if (vendor && vendor.walletId) {
+            const wallet = await Wallet_1.Wallet.findById(vendor.walletId);
+            if (wallet) {
+                const earnings = item.price * item.quantity;
+                wallet.totalEarnings += earnings;
+                wallet.thisMonth += earnings;
+                wallet.availableBalance += earnings;
+                const walletTransaction = {
+                    type: "payment_received",
+                    title: `Order #${order.orderNumber} Payment`,
+                    description: `Payment for ${item.name}`,
+                    amount: earnings,
+                    timestamp: new Date(),
+                    isPositive: true,
+                };
+                wallet.transactions.push(walletTransaction);
+                await wallet.save();
+            }
         }
     }
     res.status(201).json({

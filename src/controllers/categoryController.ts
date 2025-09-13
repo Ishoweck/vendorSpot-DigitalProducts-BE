@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
-import { Category } from "@/models/Category";
-import { asyncHandler, createError } from "@/middleware/errorHandler";
+import { Category } from "../models/Category";
+import { asyncHandler, createError } from "../middleware/errorHandler";
 
 export const getCategories = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {

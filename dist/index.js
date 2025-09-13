@@ -3,6 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+require("module-alias/register");
 require("reflect-metadata");
 require("express-async-errors");
 const express_1 = __importDefault(require("express"));
@@ -17,22 +18,23 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const http_1 = require("http");
 const socket_io_1 = require("socket.io");
-const config_1 = require("@/config/config");
-const logger_1 = require("@/utils/logger");
-const errorHandler_1 = require("@/middleware/errorHandler");
-const notFoundHandler_1 = require("@/middleware/notFoundHandler");
-const auth_1 = __importDefault(require("@/routes/auth"));
-const users_1 = __importDefault(require("@/routes/users"));
-const vendors_1 = __importDefault(require("@/routes/vendors"));
-const admin_1 = __importDefault(require("@/routes/admin"));
-const products_1 = __importDefault(require("@/routes/products"));
-const categories_1 = __importDefault(require("@/routes/categories"));
-const orders_1 = __importDefault(require("@/routes/orders"));
-const payments_1 = __importDefault(require("@/routes/payments"));
-const reviews_1 = __importDefault(require("@/routes/reviews"));
-const notifications_1 = __importDefault(require("@/routes/notifications"));
-const webhooks_1 = __importDefault(require("@/routes/webhooks"));
-const SocketService_1 = require("@/services/SocketService");
+const config_1 = require("./config/config");
+const logger_1 = require("./utils/logger");
+const errorHandler_1 = require("./middleware/errorHandler");
+const notFoundHandler_1 = require("./middleware/notFoundHandler");
+const auth_1 = __importDefault(require("./routes/auth"));
+const users_1 = __importDefault(require("./routes/users"));
+const vendors_1 = __importDefault(require("./routes/vendors"));
+const admin_1 = __importDefault(require("./routes/admin"));
+const products_1 = __importDefault(require("./routes/products"));
+const categories_1 = __importDefault(require("./routes/categories"));
+const orders_1 = __importDefault(require("./routes/orders"));
+const payments_1 = __importDefault(require("./routes/payments"));
+const reviews_1 = __importDefault(require("./routes/reviews"));
+const notifications_1 = __importDefault(require("./routes/notifications"));
+const webhooks_1 = __importDefault(require("./routes/webhooks"));
+const SocketService_1 = require("./services/SocketService");
+const wallet_1 = __importDefault(require("./routes/wallet"));
 dotenv_1.default.config();
 class App {
     app;
@@ -128,6 +130,7 @@ class App {
         this.app.use("/api/payments", payments_1.default);
         this.app.use("/api/reviews", reviews_1.default);
         this.app.use("/api/webhooks", webhooks_1.default);
+        this.app.use("/api/wallet", wallet_1.default);
     }
     initializeErrorHandling() {
         this.app.use(notFoundHandler_1.notFoundHandler);

@@ -2,8 +2,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.emailService = void 0;
 const resend_1 = require("resend");
-const config_1 = require("@/config/config");
-const logger_1 = require("@/utils/logger");
+const config_1 = require("../config/config");
+const logger_1 = require("../utils/logger");
 class EmailService {
     resend = null;
     isResendEnabled = false;

@@ -9,7 +9,7 @@ export declare const createNotification: (data: {
     channels?: string[];
     data?: any;
     expiresAt?: Date;
-}) => Promise<(import("mongoose").Document<unknown, {}, import("@/models/Notification").INotification, {}, {}> & import("@/models/Notification").INotification & Required<{
+}) => Promise<(import("mongoose").Document<unknown, {}, import("../models/Notification").INotification, {}, {}> & import("../models/Notification").INotification & Required<{
     _id: unknown;
 }> & {
     __v: number;

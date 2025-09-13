@@ -1,12 +1,12 @@
 import { Request, Response, NextFunction } from "express";
 import mongoose from "mongoose";
-import { Review } from "@/models/Review";
-import { Product } from "@/models/Product";
-import { Order } from "@/models/Order";
-import { Vendor } from "@/models/Vendor";
-import { cloudinaryService } from "@/services/cloudinaryService";
-import { asyncHandler, createError } from "@/middleware/errorHandler";
-import { SocketService } from "@/services/SocketService";
+import { Review } from "../models/Review";
+import { Product } from "../models/Product";
+import { Order } from "../models/Order";
+import { Vendor } from "../models/Vendor";
+import { cloudinaryService } from "../services/cloudinaryService";
+import { asyncHandler, createError } from "../middleware/errorHandler";
+import { SocketService } from "../services/SocketService";
 import { createNotification } from "./NotificationController";
 
 export const createReview = asyncHandler(

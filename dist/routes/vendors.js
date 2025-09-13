@@ -5,8 +5,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const multer_1 = __importDefault(require("multer"));
-const auth_1 = require("@/middleware/auth");
-const VendorController_1 = require("@/controllers/VendorController");
+const auth_1 = require("../middleware/auth");
+const VendorController_1 = require("../controllers/VendorController");
 const router = (0, express_1.Router)();
 const upload = (0, multer_1.default)({
     dest: "uploads/",
@@ -29,5 +29,6 @@ router.get("/sales", auth_1.authenticate, (0, auth_1.authorize)("VENDOR", "ADMIN
 router.get("/", VendorController_1.getAllVendors);
 router.get("/:id", VendorController_1.getVendorById);
 router.patch("/:id/verify", auth_1.authenticate, (0, auth_1.authorize)("ADMIN"), VendorController_1.verifyVendor);
+router.get("/getVendorDetails/:businessName", VendorController_1.getVendorByBusinessName);
 exports.default = router;
 //# sourceMappingURL=vendors.js.map

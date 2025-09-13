@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createError = exports.asyncHandler = exports.errorHandler = void 0;
-const logger_1 = require("@/utils/logger");
+const logger_1 = require("../utils/logger");
 const config_1 = require("../config/config");
 const errorHandler = (error, req, res, next) => {
     let statusCode = error.statusCode || 500;

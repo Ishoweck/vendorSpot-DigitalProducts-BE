@@ -1,5 +1,5 @@
 import { v2 as cloudinary } from "cloudinary";
-import { config } from "@/config/config";
+import { config } from "../config/config";
 import { log } from "console";
 
 cloudinary.config({

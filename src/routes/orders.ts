@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { authenticate, authorize } from "@/middleware/auth";
+import { authenticate, authorize } from "../middleware/auth";
 import {
   createOrder,
   getUserOrders,
@@ -8,7 +8,7 @@ import {
   getVendorOrders,
   updateOrderStatus,
   cancelOrder
-} from "@/controllers/OrderController";
+} from "../controllers/OrderController";
 
 const router: Router = Router();
 

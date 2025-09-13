@@ -5,13 +5,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.reportReview = exports.markReviewHelpful = exports.respondToReview = exports.deleteReview = exports.updateReview = exports.getUserReviews = exports.getProductReviews = exports.createReview = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
-const Review_1 = require("@/models/Review");
-const Product_1 = require("@/models/Product");
-const Order_1 = require("@/models/Order");
-const Vendor_1 = require("@/models/Vendor");
-const cloudinaryService_1 = require("@/services/cloudinaryService");
-const errorHandler_1 = require("@/middleware/errorHandler");
-const SocketService_1 = require("@/services/SocketService");
+const Review_1 = require("../models/Review");
+const Product_1 = require("../models/Product");
+const Order_1 = require("../models/Order");
+const Vendor_1 = require("../models/Vendor");
+const cloudinaryService_1 = require("../services/cloudinaryService");
+const errorHandler_1 = require("../middleware/errorHandler");
+const SocketService_1 = require("../services/SocketService");
 const NotificationController_1 = require("./NotificationController");
 exports.createReview = (0, errorHandler_1.asyncHandler)(async (req, res, next) => {
     const user = req.user;

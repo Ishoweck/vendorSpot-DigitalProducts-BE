@@ -1,5 +1,5 @@
 import winston from "winston";
-import { config } from "@/config/config";
+import { config } from  "../config/config";
 import fs from "fs";
 import path from "path";
 

@@ -1,14 +1,14 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.verifyVendor = exports.getVendorById = exports.getAllVendors = exports.getVendorSales = exports.getVendorDashboard = exports.updateVendorProfile = exports.getVendorProfile = exports.createVendorProfile = void 0;
-const Vendor_1 = require("@/models/Vendor");
-const User_1 = require("@/models/User");
-const Product_1 = require("@/models/Product");
-const Order_1 = require("@/models/Order");
-const Review_1 = require("@/models/Review");
-const cloudinaryService_1 = require("@/services/cloudinaryService");
-const errorHandler_1 = require("@/middleware/errorHandler");
-const SocketService_1 = require("@/services/SocketService");
+exports.getVendorByBusinessName = exports.verifyVendor = exports.getVendorById = exports.getAllVendors = exports.getVendorSales = exports.getVendorDashboard = exports.updateVendorProfile = exports.getVendorProfile = exports.createVendorProfile = void 0;
+const Vendor_1 = require("../models/Vendor");
+const User_1 = require("../models/User");
+const Product_1 = require("../models/Product");
+const Order_1 = require("../models/Order");
+const Review_1 = require("../models/Review");
+const cloudinaryService_1 = require("../services/cloudinaryService");
+const errorHandler_1 = require("../middleware/errorHandler");
+const SocketService_1 = require("../services/SocketService");
 const NotificationController_1 = require("./NotificationController");
 exports.createVendorProfile = (0, errorHandler_1.asyncHandler)(async (req, res, next) => {
     const user = req.user;
@@ -329,6 +329,9 @@ exports.getAllVendors = (0, errorHandler_1.asyncHandler)(async (req, res, next) 
     if (req.query.verificationStatus) {
         query.verificationStatus = req.query.verificationStatus;
     }
+    if (req.query.isSponsored !== undefined) {
+        query.isSponsored = req.query.isSponsored === "true";
+    }
     const vendors = await Vendor_1.Vendor.find(query)
         .populate("userId", "firstName lastName")
         .sort({ createdAt: -1 })
@@ -421,6 +424,43 @@ exports.verifyVendor = (0, errorHandler_1.asyncHandler)(async (req, res, next) =
         success: true,
         message: `Vendor ${status.toLowerCase()} successfully`,
         data: vendor,
+    });
+});
+exports.getVendorByBusinessName = (0, errorHandler_1.asyncHandler)(async (req, res, next) => {
+    const businessName = req.params.businessName;
+    const vendor = await Vendor_1.Vendor.findOne({
+        businessName: { $regex: `^${businessName}$`, $options: "i" },
+        isActive: true,
+    }).populate("userId", "firstName lastName email");
+    if (!vendor) {
+        return next((0, errorHandler_1.createError)("Vendor not found", 404));
+    }
+    const products = await Product_1.Product.find({
+        vendorId: vendor._id,
+        isActive: true,
+        isApproved: true,
+    }).limit(6);
+    res.status(200).json({
+        success: true,
+        data: {
+            vendor: {
+                _id: vendor._id,
+                businessName: vendor.businessName,
+                businessDescription: vendor.businessDescription,
+                businessAddress: vendor.businessAddress,
+                businessPhone: vendor.businessPhone,
+                businessEmail: vendor.businessEmail,
+                website: vendor.website,
+                logo: vendor.logo,
+                banner: vendor.banner,
+                verificationStatus: vendor.verificationStatus,
+                rating: vendor.rating,
+                totalSales: vendor.totalSales,
+                totalProducts: vendor.totalProducts,
+                user: vendor.userId,
+            },
+            products,
+        },
     });
 });
 //# sourceMappingURL=VendorController.js.map

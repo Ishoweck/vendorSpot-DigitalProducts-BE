@@ -5,14 +5,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.paystackWebhook = void 0;
 const crypto_1 = __importDefault(require("crypto"));
-const Payment_1 = require("@/models/Payment");
-const Order_1 = require("@/models/Order");
-const Product_1 = require("@/models/Product");
-const User_1 = require("@/models/User");
-const errorHandler_1 = require("@/middleware/errorHandler");
-const SocketService_1 = require("@/services/SocketService");
+const Payment_1 = require("../models/Payment");
+const Order_1 = require("../models/Order");
+const Product_1 = require("../models/Product");
+const User_1 = require("../models/User");
+const errorHandler_1 = require("../middleware/errorHandler");
+const SocketService_1 = require("../services/SocketService");
 const NotificationController_1 = require("./NotificationController");
-const config_1 = __importDefault(require("@/config/config"));
+const config_1 = __importDefault(require("../config/config"));
 exports.paystackWebhook = (0, errorHandler_1.asyncHandler)(async (req, res, next) => {
     const hash = crypto_1.default
         .createHmac("sha512", config_1.default.paystackSecretKey)

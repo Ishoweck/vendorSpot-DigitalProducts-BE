@@ -1,12 +1,12 @@
 import { Request, Response, NextFunction } from "express";
-import { User } from "@/models/User";
-import { Order } from "@/models/Order";
-import { Review } from "@/models/Review";
-import { Product } from "@/models/Product";
-import { cloudinaryService } from "@/services/cloudinaryService";
-import { asyncHandler, createError } from "@/middleware/errorHandler";
+import { User } from "../models/User";
+import { Order } from "../models/Order";
+import { Review } from "../models/Review";
+import { Product } from "../models/Product";
+import { cloudinaryService } from "../services/cloudinaryService";
+import { asyncHandler, createError } from "../middleware/errorHandler";
 import { createNotification } from "./NotificationController";
-import { Vendor } from "@/models/Vendor";
+import { Vendor } from "../models/Vendor";
 
 export const getProfile = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {

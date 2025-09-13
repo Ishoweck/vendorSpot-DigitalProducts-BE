@@ -1,13 +1,14 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.sendBulkNotification = exports.updateNotificationSettings = exports.getNotificationSettings = exports.clearAllNotifications = exports.deleteNotification = exports.markAllNotificationsAsRead = exports.markNotificationAsRead = exports.getUserNotifications = exports.createNotification = void 0;
-const Notification_1 = require("@/models/Notification");
-const User_1 = require("@/models/User");
-const errorHandler_1 = require("@/middleware/errorHandler");
-const SocketService_1 = require("@/services/SocketService");
-const emailService_1 = require("@/services/emailService");
+const Notification_1 = require("../models/Notification");
+const User_1 = require("../models/User");
+const errorHandler_1 = require("../middleware/errorHandler");
+const SocketService_1 = require("../services/SocketService");
+const emailService_1 = require("../services/emailService");
 const createNotification = async (data) => {
     try {
+        console.log("This is useridd", data.userId);
         const user = await User_1.User.findById(data.userId);
         if (!user)
             return null;

@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import { Request, Response, NextFunction } from "express";
-import { Product } from "@/models/Product";
-import { asyncHandler, createError } from "@/middleware/errorHandler";
+import { Product } from "../models/Product";
+import { asyncHandler, createError } from "../middleware/errorHandler";
 
 export interface DownloadToken {
   productId: string;

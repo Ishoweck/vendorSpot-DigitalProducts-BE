@@ -20,6 +20,10 @@ export interface IVendor extends Document {
     totalProducts: number;
     commissionRate: number;
     isActive: boolean;
+    isSponsored: boolean;
+    walletId: mongoose.Types.ObjectId;
+    sponsorshipStartDate?: Date;
+    sponsorshipEndDate?: Date;
     createdAt: Date;
     updatedAt: Date;
 }

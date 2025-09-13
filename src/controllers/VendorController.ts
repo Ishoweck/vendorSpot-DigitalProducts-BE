@@ -1,12 +1,12 @@
 import { Request, Response, NextFunction } from "express";
-import { Vendor } from "@/models/Vendor";
-import { User } from "@/models/User";
-import { Product } from "@/models/Product";
-import { Order } from "@/models/Order";
-import { Review } from "@/models/Review";
-import { cloudinaryService } from "@/services/cloudinaryService";
-import { asyncHandler, createError } from "@/middleware/errorHandler";
-import { SocketService } from "@/services/SocketService";
+import { Vendor } from "../models/Vendor";
+import { User } from "../models/User";
+import { Product } from "../models/Product";
+import { Order } from "../models/Order";
+import { Review } from "../models/Review";
+import { cloudinaryService } from "../services/cloudinaryService";
+import { asyncHandler, createError } from "../middleware/errorHandler";
+import { SocketService } from "../services/SocketService";
 import { createNotification } from "./NotificationController";
 
 
