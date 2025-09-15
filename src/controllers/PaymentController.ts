@@ -121,7 +121,7 @@ export const initializePayment = asyncHandler(
 
 export const verifyPayment = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    const { reference } = req.body;
+    const reference = req.body.reference || req.query.reference || req.params.reference;
 
     console.log("🔍 Starting payment verification for:", reference);
 
