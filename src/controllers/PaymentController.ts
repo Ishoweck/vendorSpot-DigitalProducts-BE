@@ -55,6 +55,8 @@ export const initializePayment = asyncHandler(
       amount: Math.round(order.total * 100),
       reference,
       currency: order.currency,
+      callback_url: "https://digitalproducts.vendorspotng.com/checkout/confirmation",
+
       metadata: {
         orderId: order._id,
         userId: user._id,

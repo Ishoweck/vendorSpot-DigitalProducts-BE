@@ -47,6 +47,7 @@ exports.initializePayment = (0, errorHandler_1.asyncHandler)(async (req, res, ne
         amount: Math.round(order.total * 100),
         reference,
         currency: order.currency,
+        callback_url: "https://digitalproducts.vendorspotng.com/checkout/confirmation",
         metadata: {
             orderId: order._id,
             userId: user._id,
@@ -73,6 +74,7 @@ exports.initializePayment = (0, errorHandler_1.asyncHandler)(async (req, res, ne
             gateway: "PAYSTACK",
             amount: order.total,
             currency: order.currency,
+            callback_url: "https://digitalproducts.vendorspotng.com/checkout/confirmation",
             metadata: paymentData.metadata,
             idempotencyKey,
         });
