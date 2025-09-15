@@ -14,7 +14,6 @@ const generatePaymentReference = (): string => {
   const random = Math.random().toString(36).substring(2, 8).toUpperCase();
   return `PAY-${random}-${timestamp.slice(-8)}`;
 };
-
 export const initializePayment = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const user = req.user as any;
@@ -48,16 +47,10 @@ export const initializePayment = asyncHandler(
       return next(createError("Order already paid", 400));
     }
 
-    const reference = generatePaymentReference();
-
-    order.paymentReference = reference;
-
-    await order.save();
-
-    const paymentData = {
+    // ✅ DO NOT generate your own reference
+    const paymentInitData = {
       email: user.email,
       amount: Math.round(order.total * 100),
-      reference,
       currency: order.currency,
       callback_url: "https://digitalproducts.vendorspotng.com/checkout/confirmation",
 
@@ -77,7 +70,7 @@ export const initializePayment = asyncHandler(
             Authorization: `Bearer ${config.paystackSecretKey}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(paymentData),
+          body: JSON.stringify(paymentInitData),
         }
       );
 
@@ -87,21 +80,30 @@ export const initializePayment = asyncHandler(
         message?: string;
       };
 
-      if (!data.status) {
+      if (!data.status || !data.data?.reference) {
         return next(createError("Failed to initialize payment", 400));
       }
 
+      // ✅ Use Paystack's reference from their response
+      const paystackReference = data.data.reference;
+
+      // ✅ Save the reference to order
+      order.paymentReference = paystackReference;
+      await order.save();
+
+      // ✅ Save the payment to DB using the Paystack reference
       const payment = await Payment.create({
         orderId: order._id,
         userId: user._id,
-        reference,
+        reference: paystackReference,
         gateway: "PAYSTACK",
         amount: order.total,
         currency: order.currency,
-        metadata: paymentData.metadata,
+        metadata: paymentInitData.metadata,
         idempotencyKey,
       });
 
+      // ✅ Return the proper reference and authorization URL to frontend
       res.status(200).json({
         success: true,
         message: "Payment initialized successfully",
@@ -109,7 +111,7 @@ export const initializePayment = asyncHandler(
           payment,
           authorization_url: data.data.authorization_url,
           access_code: data.data.access_code,
-          reference: data.data.reference,
+          reference: paystackReference,
         },
       });
     } catch (error) {
@@ -118,6 +120,7 @@ export const initializePayment = asyncHandler(
     }
   }
 );
+
 
 export const verifyPayment = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {

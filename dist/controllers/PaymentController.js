@@ -41,11 +41,9 @@ exports.initializePayment = (0, errorHandler_1.asyncHandler)(async (req, res, ne
     if (order.paymentStatus === "PAID") {
         return next((0, errorHandler_1.createError)("Order already paid", 400));
     }
-    const reference = generatePaymentReference();
-    const paymentData = {
+    const paymentInitData = {
         email: user.email,
         amount: Math.round(order.total * 100),
-        reference,
         currency: order.currency,
         callback_url: "https://digitalproducts.vendorspotng.com/checkout/confirmation",
         metadata: {
@@ -61,21 +59,23 @@ exports.initializePayment = (0, errorHandler_1.asyncHandler)(async (req, res, ne
                 Authorization: `Bearer ${config_1.default.paystackSecretKey}`,
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify(paymentData),
+            body: JSON.stringify(paymentInitData),
         });
         const data = (await response.json());
-        if (!data.status) {
+        if (!data.status || !data.data?.reference) {
             return next((0, errorHandler_1.createError)("Failed to initialize payment", 400));
         }
+        const paystackReference = data.data.reference;
+        order.paymentReference = paystackReference;
+        await order.save();
         const payment = await Payment_1.Payment.create({
             orderId: order._id,
             userId: user._id,
-            reference,
+            reference: paystackReference,
             gateway: "PAYSTACK",
             amount: order.total,
             currency: order.currency,
-            callback_url: "https://digitalproducts.vendorspotng.com/checkout/confirmation",
-            metadata: paymentData.metadata,
+            metadata: paymentInitData.metadata,
             idempotencyKey,
         });
         res.status(200).json({
@@ -85,7 +85,7 @@ exports.initializePayment = (0, errorHandler_1.asyncHandler)(async (req, res, ne
                 payment,
                 authorization_url: data.data.authorization_url,
                 access_code: data.data.access_code,
-                reference: data.data.reference,
+                reference: paystackReference,
             },
         });
     }
@@ -95,12 +95,15 @@ exports.initializePayment = (0, errorHandler_1.asyncHandler)(async (req, res, ne
     }
 });
 exports.verifyPayment = (0, errorHandler_1.asyncHandler)(async (req, res, next) => {
-    const { reference } = req.params;
+    const reference = req.body.reference || req.query.reference || req.params.reference;
+    console.log("🔍 Starting payment verification for:", reference);
     const payment = await Payment_1.Payment.findOne({ reference }).populate("orderId");
     if (!payment) {
+        console.error("❌ Payment not found for reference:", reference);
         return next((0, errorHandler_1.createError)("Payment not found", 404));
     }
     if (payment.status === "SUCCESS") {
+        console.log("✅ Payment already verified.");
         return res.status(200).json({
             success: true,
             message: "Payment already verified",
@@ -108,6 +111,7 @@ exports.verifyPayment = (0, errorHandler_1.asyncHandler)(async (req, res, next) 
         });
     }
     try {
+        console.log("🌍 Verifying payment with Paystack...");
         const response = await fetch(`https://api.paystack.co/transaction/verify/${reference}`, {
             method: "GET",
             headers: {
@@ -115,73 +119,67 @@ exports.verifyPayment = (0, errorHandler_1.asyncHandler)(async (req, res, next) 
                 "Content-Type": "application/json",
             },
         });
-        const data = (await response.json());
-        if (!data.status) {
+        const data = await response.json();
+        if (!data.status || data.data?.status !== "success") {
+            console.error("❌ Paystack verification failed:", data.message);
             payment.status = "FAILED";
-            payment.failureReason = data.message;
+            payment.failureReason = data.message || "Unknown failure";
             await payment.save();
             return next((0, errorHandler_1.createError)("Payment verification failed", 400));
         }
         const transactionData = data.data;
-        if (transactionData.status === "success") {
-            payment.status = "SUCCESS";
-            payment.paidAt = new Date();
-            payment.gatewayResponse = transactionData;
-            payment.channel = transactionData.channel;
-            await payment.save();
-            const order = await Order_1.Order.findById(payment.orderId);
-            if (order) {
-                order.paymentStatus = "PAID";
-                order.status = "DELIVERED";
-                order.paymentReference = reference;
-                order.deliveredAt = new Date();
-                await order.save();
-                for (const item of order.items) {
-                    await Product_1.Product.findByIdAndUpdate(item.productId, {
-                        $inc: { soldCount: item.quantity },
-                    });
-                }
-                await User_1.User.findByIdAndUpdate(payment.userId, {
-                    cart: { items: [] },
+        console.log("✅ Paystack confirmed payment success.");
+        payment.status = "SUCCESS";
+        payment.paidAt = new Date();
+        payment.gatewayResponse = transactionData;
+        payment.channel = transactionData.channel;
+        await payment.save();
+        const order = await Order_1.Order.findById(payment.orderId);
+        if (!order) {
+            console.error("❌ Order not found for payment:", payment.orderId);
+            return next((0, errorHandler_1.createError)("Order not found", 404));
+        }
+        console.log("📝 Updating order with payment status...");
+        order.paymentStatus = "PAID";
+        order.status = "DELIVERED";
+        order.paymentReference = reference;
+        order.deliveredAt = new Date();
+        await order.save();
+        for (const item of order.items) {
+            await Product_1.Product.findByIdAndUpdate(item.productId, {
+                $inc: { soldCount: item.quantity },
+            });
+        }
+        await User_1.User.findByIdAndUpdate(payment.userId, {
+            cart: { items: [] },
+        });
+        try {
+            const io = SocketService_1.SocketService.getIO();
+            io.to(payment.userId.toString()).emit("payment:success", {
+                orderId: order._id,
+                reference,
+                amount: payment.amount,
+            });
+            for (const item of order.items) {
+                io.to(item.vendorId.toString()).emit("order:payment_received", {
+                    orderId: order._id,
+                    orderNumber: order.orderNumber,
+                    amount: item.price * item.quantity,
                 });
-                try {
-                    const io = SocketService_1.SocketService.getIO();
-                    io.to(payment.userId.toString()).emit("payment:success", {
-                        orderId: order._id,
-                        reference,
-                        amount: payment.amount,
-                    });
-                    for (const item of order.items) {
-                        io.to(item.vendorId.toString()).emit("order:payment_received", {
-                            orderId: order._id,
-                            orderNumber: order.orderNumber,
-                            amount: item.price * item.quantity,
-                        });
-                    }
-                }
-                catch (error) {
-                    console.log("Socket emit error:", error);
-                }
             }
-            res.status(200).json({
-                success: true,
-                message: "Payment verified successfully",
-                data: payment,
-            });
+            console.log("📢 Socket events emitted.");
         }
-        else {
-            payment.status = "FAILED";
-            payment.failureReason = transactionData.gateway_response;
-            await payment.save();
-            res.status(400).json({
-                success: false,
-                message: "Payment failed",
-                data: payment,
-            });
+        catch (socketError) {
+            console.error("⚠️ Socket emit error:", socketError);
         }
+        res.status(200).json({
+            success: true,
+            message: "Payment verified and order updated",
+            data: payment,
+        });
     }
     catch (error) {
-        console.error("Payment verification error:", error);
+        console.error("❌ Unexpected error during verification:", error);
         return next((0, errorHandler_1.createError)("Payment verification failed", 500));
     }
 });
