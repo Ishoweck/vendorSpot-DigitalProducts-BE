@@ -92,6 +92,7 @@ export const initializePayment = asyncHandler(
         gateway: "PAYSTACK",
         amount: order.total,
         currency: order.currency,
+        callback_url: "https://digitalproducts.vendorspotng.com/checkout/confirmation",
         metadata: paymentData.metadata,
         idempotencyKey,
       });
