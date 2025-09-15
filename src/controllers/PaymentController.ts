@@ -50,6 +50,10 @@ export const initializePayment = asyncHandler(
 
     const reference = generatePaymentReference();
 
+    order.paymentReference = reference;
+
+    await order.save();
+
     const paymentData = {
       email: user.email,
       amount: Math.round(order.total * 100),
@@ -118,6 +122,8 @@ export const initializePayment = asyncHandler(
 
 export const verifyPayment = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
+    console.log("verifying payment");
+
     const { reference } = req.params;
 
     const payment = await Payment.findOne({ reference }).populate("orderId");
@@ -170,43 +176,53 @@ export const verifyPayment = asyncHandler(
 
         const order = await Order.findById(payment.orderId);
         if (order) {
-          order.paymentStatus = "PAID";
-          order.status = "DELIVERED";
+          // Always set paymentReference and save order
           order.paymentReference = reference;
-          order.deliveredAt = new Date();
-          await order.save();
 
-          for (const item of order.items) {
-            await Product.findByIdAndUpdate(item.productId, {
-              $inc: { soldCount: item.quantity },
-            });
-          }
+          // Only update order status if not already paid
+          if (order.paymentStatus !== "PAID") {
+            order.paymentStatus = "PAID";
+            order.status = "DELIVERED";
+            order.deliveredAt = new Date();
 
-          await User.findByIdAndUpdate(payment.userId, {
-            cart: { items: [] },
-          });
-
-          try {
-            const io = SocketService.getIO();
-            io.to(payment.userId.toString()).emit("payment:success", {
-              orderId: order._id,
-              reference,
-              amount: payment.amount,
-            });
-
+            // Increment soldCount for each product
             for (const item of order.items) {
-              io.to(item.vendorId.toString()).emit("order:payment_received", {
-                orderId: order._id,
-                orderNumber: order.orderNumber,
-                amount: item.price * item.quantity,
+              await Product.findByIdAndUpdate(item.productId, {
+                $inc: { soldCount: item.quantity },
               });
             }
-          } catch (error) {
-            console.log("Socket emit error:", error);
+
+            // Clear user's cart
+            await User.findByIdAndUpdate(payment.userId, {
+              cart: { items: [] },
+            });
+
+            // Emit socket events
+            try {
+              const io = SocketService.getIO();
+              io.to(payment.userId.toString()).emit("payment:success", {
+                orderId: order._id,
+                reference,
+                amount: payment.amount,
+              });
+
+              for (const item of order.items) {
+                io.to(item.vendorId.toString()).emit("order:payment_received", {
+                  orderId: order._id,
+                  orderNumber: order.orderNumber,
+                  amount: item.price * item.quantity,
+                });
+              }
+            } catch (error) {
+              console.log("Socket emit error:", error);
+            }
           }
+
+          await order.save();
+          console.log("Order saved:", order);
         }
 
-        res.status(200).json({
+        return res.status(200).json({
           success: true,
           message: "Payment verified successfully",
           data: payment,
@@ -216,7 +232,7 @@ export const verifyPayment = asyncHandler(
         payment.failureReason = transactionData.gateway_response;
         await payment.save();
 
-        res.status(400).json({
+        return res.status(400).json({
           success: false,
           message: "Payment failed",
           data: payment,
@@ -228,7 +244,6 @@ export const verifyPayment = asyncHandler(
     }
   }
 );
-
 export const getUserPayments = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const user = req.user as any;
