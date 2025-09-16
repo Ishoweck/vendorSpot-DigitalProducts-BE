@@ -269,6 +269,10 @@ export const createProduct = asyncHandler(
     let previewUrl = "";
     const images: string[] = [];
 
+      console.log("req.files:", req.files);
+      console.log("req.body:", req.body);
+
+
     if (req.files) {
       const files = req.files as { [fieldname: string]: Express.Multer.File[] };
 
@@ -746,12 +750,13 @@ export const downloadProductFile = asyncHandler(
 
       console.log("Extracted public ID:", publicId);
       console.log("Safe filename:", safeFilename);
+     const downloadUrl = cloudinary.url(publicId, {
+  resource_type: "raw",
+  flags: "attachment",
+  attachment: safeFilename,
+   secure: true, 
+});
 
-      const downloadUrl = cloudinary.url(publicId, {
-        resource_type: "raw",
-        flags: "attachment",
-        transformation: [{ flags: `attachment:${safeFilename}` }],
-      });
 
       console.log("Generated download URL:", downloadUrl);
 
