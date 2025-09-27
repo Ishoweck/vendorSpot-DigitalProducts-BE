@@ -682,3 +682,120 @@ export const deleteCategory = asyncHandler(
     res.json({ message: "Category deleted" });
   }
 );
+
+export const getAdminDashboardStats = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const [
+        totalUsers,
+        activeUsers,
+        inactiveUsers,
+        totalVendors,
+        verifiedVendors,
+        pendingVendors,
+        totalProducts,
+        approvedProducts,
+        pendingProducts,
+        rejectedProducts,
+        totalOrders,
+        totalRevenue,
+        ordersByStatus,
+        totalPayments,
+        totalReviews,
+        pendingReviews,
+        approvedReviews,
+        rejectedReviews,
+        totalCategories,
+      ] = await Promise.all([
+        User.countDocuments(),
+        User.countDocuments({ status: "ACTIVE" }),
+        User.countDocuments({ status: "INACTIVE" }),
+
+        Vendor.countDocuments(),
+        Vendor.countDocuments({ verificationStatus: "APPROVED" }),
+        Vendor.countDocuments({ verificationStatus: "PENDING" }),
+
+        Product.countDocuments(),
+        Product.countDocuments({ approvalStatus: "APPROVED" }),
+        Product.countDocuments({ approvalStatus: "PENDING" }),
+        Product.countDocuments({ approvalStatus: "REJECTED" }),
+
+        Order.countDocuments(),
+        Order.aggregate([
+          { $match: { paymentStatus: "PAID" } },
+          {
+            $group: {
+              _id: null,
+              totalRevenue: { $sum: "$totalAmount" },
+            },
+          },
+        ]),
+
+        Order.aggregate([
+          {
+            $group: {
+              _id: "$status",
+              count: { $sum: 1 },
+            },
+          },
+        ]),
+
+        Payment.countDocuments(),
+
+        Review.countDocuments(),
+        Review.countDocuments({ status: "PENDING" }),
+        Review.countDocuments({ status: "APPROVED" }),
+        Review.countDocuments({ status: "REJECTED" }),
+
+        Category.countDocuments(),
+      ]);
+
+      const revenue = totalRevenue[0]?.totalRevenue || 0;
+
+      res.status(200).json({
+        success: true,
+        message: "Admin dashboard stats retrieved successfully",
+        data: {
+          users: {
+            total: totalUsers,
+            active: activeUsers,
+            inactive: inactiveUsers,
+          },
+          vendors: {
+            total: totalVendors,
+            verified: verifiedVendors,
+            pending: pendingVendors,
+          },
+          products: {
+            total: totalProducts,
+            approved: approvedProducts,
+            pending: pendingProducts,
+            rejected: rejectedProducts,
+          },
+          orders: {
+            total: totalOrders,
+            revenue,
+            byStatus: ordersByStatus.reduce(
+              (acc, curr) => ({ ...acc, [curr._id]: curr.count }),
+              {}
+            ),
+          },
+          payments: {
+            total: totalPayments,
+          },
+          reviews: {
+            total: totalReviews,
+            pending: pendingReviews,
+            approved: approvedReviews,
+            rejected: rejectedReviews,
+          },
+          categories: {
+            total: totalCategories,
+          },
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);

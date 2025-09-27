@@ -5,8 +5,8 @@ import * as Admincontrollers from "../controllers/AdminController";
 
 const router: Router = Router();
 
-// router.use(authenticate);
-// router.use(authorize("ADMIN"));
+router.use(authenticate);
+router.use(authorize("ADMIN", "SUPERADMIN"));
 
 // router.get("/dashboard", (req, res) => {
 //   res.status(200).json({
@@ -49,6 +49,9 @@ const router: Router = Router();
 //     },
 //   });
 // });
+
+router.get("/dashboard/stats", Admincontrollers.getAdminDashboardStats);
+
 
 
 router.get("/users", Admincontrollers.getAllUsers);

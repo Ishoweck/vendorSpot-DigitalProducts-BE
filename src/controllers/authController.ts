@@ -10,7 +10,7 @@ import { asyncHandler, createError } from "../middleware/errorHandler";
 import { createNotification } from "./NotificationController";
 import { Wallet } from "../models/Wallet";
 
-const generateTokens = (userId: string) => {
+const generateTokens = (userId: string, role: string) => {
   const signOptions: jwt.SignOptions = {
     expiresIn: config.jwtExpiresIn as jwt.SignOptions["expiresIn"],
     algorithm: "HS256",
@@ -21,17 +21,14 @@ const generateTokens = (userId: string) => {
     algorithm: "HS256",
   };
 
-  const token = jwt.sign(
-    { id: userId },
-    Buffer.from(config.jwtSecret),
-    signOptions
-  );
+  const payload = {
+    id: userId,
+    role,
+    
+  };
 
-  const refreshToken = jwt.sign(
-    { id: userId },
-    Buffer.from(config.jwtSecret),
-    refreshSignOptions
-  );
+  const token = jwt.sign(payload, Buffer.from(config.jwtSecret), signOptions);
+  const refreshToken = jwt.sign(payload, Buffer.from(config.jwtSecret), refreshSignOptions);
 
   return { token, refreshToken };
 };
@@ -46,8 +43,10 @@ export const register = asyncHandler(
       phone,
       isVendor,
       businessName,
+      role: requestedRole, // <-- support for role from body
     } = req.body;
 
+    // Basic validations
     if (!email || !password || !firstName || !lastName) {
       return next(createError("All required fields must be provided", 400));
     }
@@ -60,6 +59,7 @@ export const register = asyncHandler(
       return next(createError("Business name is required for vendors", 400));
     }
 
+    // Check for existing user
     const existingUser = await User.findOne({ email: email.toLowerCase() });
     if (existingUser) {
       return next(createError("User with this email already exists", 409));
@@ -77,8 +77,19 @@ export const register = asyncHandler(
       }
     }
 
-    const role = isVendor ? "VENDOR" : "CUSTOMER";
+    // ✅ Determine the user role safely
+    let role: "CUSTOMER" | "VENDOR" | "ADMIN" = "CUSTOMER";
 
+    if (requestedRole === "ADMIN") {
+     
+        role = "ADMIN";
+     
+      
+    } else if (isVendor) {
+      role = "VENDOR";
+    }
+
+    // Create user
     const user = await User.create({
       email: email.toLowerCase(),
       password,
@@ -89,23 +100,22 @@ export const register = asyncHandler(
     });
 
     let vendor = null;
+
     if (isVendor && businessName) {
       try {
-
-           const wallet = await Wallet.create({
+        const wallet = await Wallet.create({
           userId: user._id,
           availableBalance: 0,
           totalEarnings: 0,
           transactions: [],
         });
+
         vendor = await Vendor.create({
           userId: user._id,
           businessName,
-          walletId: wallet._id, 
-
+          walletId: wallet._id,
         });
 
-     
         logger.info(`Vendor record created for user: ${user.email}`, {
           userId: String(user._id),
           vendorId: String(vendor._id),
@@ -121,8 +131,10 @@ export const register = asyncHandler(
       }
     }
 
-    const { token, refreshToken } = generateTokens(String(user._id));
+    // Generate auth tokens
+    const { token, refreshToken } = generateTokens(String(user._id), user.role);
 
+    // Send welcome email
     try {
       await emailService.sendWelcomeEmail(user.email, user.firstName);
       logger.info(`Welcome email sent to ${user.email}`, {
@@ -136,6 +148,7 @@ export const register = asyncHandler(
       });
     }
 
+    // Create welcome notification
     try {
       await createNotification({
         userId: String(user._id),
@@ -153,18 +166,16 @@ export const register = asyncHandler(
       });
     }
 
-    const verificationOTP = Math.floor(
-      100000 + Math.random() * 900000
-    ).toString();
+    // Generate and attach email verification OTP
+    const verificationOTP = Math.floor(100000 + Math.random() * 900000).toString();
     const verificationOTPExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
     user.emailVerificationOTP = verificationOTP;
     user.emailVerificationOTPExpires = verificationOTPExpiry;
 
-    console.log(verifyEmailOTP);
-    
     await user.save();
 
+    // Send OTP email
     try {
       await emailService.sendVerificationOTPEmail(
         user.email,
@@ -173,9 +184,7 @@ export const register = asyncHandler(
       );
 
       if (config.nodeEnv === "development") {
-        logger.info(
-          `🔢 VERIFICATION OTP (DEV): ${verificationOTP} for ${user.email}`
-        );
+        logger.info(`🔢 VERIFICATION OTP (DEV): ${verificationOTP} for ${user.email}`);
       }
 
       logger.info(`Email verification OTP sent to ${user.email}`, {
@@ -190,6 +199,7 @@ export const register = asyncHandler(
       });
     }
 
+    // Final response
     const userResponse = {
       _id: user._id,
       email: user.email,
@@ -221,6 +231,7 @@ export const register = asyncHandler(
     });
   }
 );
+
 
 export const login = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -260,7 +271,7 @@ export const login = asyncHandler(
     user.lastLoginAt = new Date();
     await user.save();
 
-    const { token, refreshToken } = generateTokens(String(user._id));
+    const { token, refreshToken } = generateTokens(String(user._id), user.role);
 
     let vendor = null;
     if (user.role === "VENDOR") {
@@ -328,7 +339,7 @@ export const refreshToken = asyncHandler(
       }
 
       const { token: newToken, refreshToken: newRefreshToken } = generateTokens(
-        String(user._id)
+        String(user._id), user.role
       );
 
       res.status(200).json({

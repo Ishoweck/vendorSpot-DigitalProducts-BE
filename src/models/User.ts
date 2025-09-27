@@ -17,7 +17,7 @@ export interface IUser extends Document {
   state?: string;
   country: string;
   postalCode?: string;
-  role: "CUSTOMER" | "VENDOR" | "ADMIN" | "MODERATOR";
+  role: "CUSTOMER" | "VENDOR" | "ADMIN" | "MODERATOR" | "SUPERADMIN";
   status: "ACTIVE" | "INACTIVE" | "SUSPENDED" | "BANNED";
   lastLoginAt?: Date;
   loginAttempts: number;
@@ -136,7 +136,7 @@ const userSchema = new Schema<IUser>(
     postalCode: String,
     role: {
       type: String,
-      enum: ["CUSTOMER", "VENDOR", "ADMIN", "MODERATOR"],
+      enum: ["CUSTOMER", "VENDOR", "ADMIN", "MODERATOR", "SUPERADMIN"],
       default: "CUSTOMER",
     },
     status: {

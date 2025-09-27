@@ -479,10 +479,13 @@ export const getVendorById = asyncHandler(
   }
 );
 
-export const verifyVendor = asyncHandler(
+export const verifyVendor = asyncHandler( 
   async (req: Request, res: Response, next: NextFunction) => {
     const user = req.user as any;
-    const { status, rejectionReason } = req.body;
+    const { verificationStatus, rejectionReason } = req.body;
+    const status = verificationStatus
+    console.log("This is status oo", status);
+    
 
     if (user.role !== "ADMIN") {
       return next(createError("Unauthorized", 403));

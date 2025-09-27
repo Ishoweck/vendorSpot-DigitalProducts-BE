@@ -49,6 +49,9 @@ export const authenticate = asyncHandler(
 
 export const authorize = (...roles: string[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
+
+    console.log("This is it", req.user);
+    
     if (!req.user) {
       return next(createError("Access denied. Please login", 401));
     }
@@ -56,6 +59,7 @@ export const authorize = (...roles: string[]) => {
     if (!roles.includes(req.user.role)) {
       return next(createError("Access denied. Insufficient permissions", 403));
     }
+
 
     next();
   };
