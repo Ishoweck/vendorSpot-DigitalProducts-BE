@@ -218,6 +218,8 @@ exports.createProduct = (0, errorHandler_1.asyncHandler)(async (req, res, next) 
     let thumbnail = "";
     let previewUrl = "";
     const images = [];
+    console.log("req.files:", req.files);
+    console.log("req.body:", req.body);
     if (req.files) {
         const files = req.files;
         if (files.file && files.file[0]) {
@@ -572,7 +574,8 @@ exports.downloadProductFile = (0, errorHandler_1.asyncHandler)(async (req, res, 
         const downloadUrl = cloudinary_1.v2.url(publicId, {
             resource_type: "raw",
             flags: "attachment",
-            transformation: [{ flags: `attachment:${safeFilename}` }],
+            attachment: safeFilename,
+            secure: true,
         });
         console.log("Generated download URL:", downloadUrl);
         await Order_1.Order.updateOne({

@@ -14,7 +14,7 @@ const logger_1 = require("../utils/logger");
 const errorHandler_1 = require("../middleware/errorHandler");
 const NotificationController_1 = require("./NotificationController");
 const Wallet_1 = require("../models/Wallet");
-const generateTokens = (userId) => {
+const generateTokens = (userId, role) => {
     const signOptions = {
         expiresIn: config_1.config.jwtExpiresIn,
         algorithm: "HS256",
@@ -23,12 +23,16 @@ const generateTokens = (userId) => {
         expiresIn: config_1.config.jwtRefreshExpiresIn,
         algorithm: "HS256",
     };
-    const token = jsonwebtoken_1.default.sign({ id: userId }, Buffer.from(config_1.config.jwtSecret), signOptions);
-    const refreshToken = jsonwebtoken_1.default.sign({ id: userId }, Buffer.from(config_1.config.jwtSecret), refreshSignOptions);
+    const payload = {
+        id: userId,
+        role,
+    };
+    const token = jsonwebtoken_1.default.sign(payload, Buffer.from(config_1.config.jwtSecret), signOptions);
+    const refreshToken = jsonwebtoken_1.default.sign(payload, Buffer.from(config_1.config.jwtSecret), refreshSignOptions);
     return { token, refreshToken };
 };
 exports.register = (0, errorHandler_1.asyncHandler)(async (req, res, next) => {
-    const { email, password, firstName, lastName, phone, isVendor, businessName, } = req.body;
+    const { email, password, firstName, lastName, phone, isVendor, businessName, role: requestedRole, } = req.body;
     if (!email || !password || !firstName || !lastName) {
         return next((0, errorHandler_1.createError)("All required fields must be provided", 400));
     }
@@ -48,7 +52,13 @@ exports.register = (0, errorHandler_1.asyncHandler)(async (req, res, next) => {
             return next((0, errorHandler_1.createError)("This phone number is already registered. Please use a different number or try logging in.", 409));
         }
     }
-    const role = isVendor ? "VENDOR" : "CUSTOMER";
+    let role = "CUSTOMER";
+    if (requestedRole === "ADMIN") {
+        role = "ADMIN";
+    }
+    else if (isVendor) {
+        role = "VENDOR";
+    }
     const user = await User_1.User.create({
         email: email.toLowerCase(),
         password,
@@ -86,7 +96,7 @@ exports.register = (0, errorHandler_1.asyncHandler)(async (req, res, next) => {
             return next((0, errorHandler_1.createError)("Failed to create vendor account", 500));
         }
     }
-    const { token, refreshToken } = generateTokens(String(user._id));
+    const { token, refreshToken } = generateTokens(String(user._id), user.role);
     try {
         await emailService_1.emailService.sendWelcomeEmail(user.email, user.firstName);
         logger_1.logger.info(`Welcome email sent to ${user.email}`, {
@@ -121,7 +131,6 @@ exports.register = (0, errorHandler_1.asyncHandler)(async (req, res, next) => {
     const verificationOTPExpiry = new Date(Date.now() + 10 * 60 * 1000);
     user.emailVerificationOTP = verificationOTP;
     user.emailVerificationOTPExpires = verificationOTPExpiry;
-    console.log(exports.verifyEmailOTP);
     await user.save();
     try {
         await emailService_1.emailService.sendVerificationOTPEmail(user.email, user.firstName, verificationOTP);
@@ -197,7 +206,7 @@ exports.login = (0, errorHandler_1.asyncHandler)(async (req, res, next) => {
     user.lockedUntil = undefined;
     user.lastLoginAt = new Date();
     await user.save();
-    const { token, refreshToken } = generateTokens(String(user._id));
+    const { token, refreshToken } = generateTokens(String(user._id), user.role);
     let vendor = null;
     if (user.role === "VENDOR") {
         vendor = await Vendor_1.Vendor.findOne({ userId: user._id });
@@ -248,7 +257,7 @@ exports.refreshToken = (0, errorHandler_1.asyncHandler)(async (req, res, next) =
         if (!user || user.status !== "ACTIVE") {
             return next((0, errorHandler_1.createError)("Invalid refresh token", 401));
         }
-        const { token: newToken, refreshToken: newRefreshToken } = generateTokens(String(user._id));
+        const { token: newToken, refreshToken: newRefreshToken } = generateTokens(String(user._id), user.role);
         res.status(200).json({
             success: true,
             message: "Token refreshed successfully",

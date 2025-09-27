@@ -237,6 +237,7 @@ export const updateVendorVerification = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const { vendorId } = req.params;
     const { status, moderationReason } = req.body;
+    
 
     if (!["APPROVED", "REJECTED", "PENDING"].includes(status)) {
       return next(createError("Invalid status", 400));

@@ -15,7 +15,7 @@ export interface IUser extends Document {
     state?: string;
     country: string;
     postalCode?: string;
-    role: "CUSTOMER" | "VENDOR" | "ADMIN" | "MODERATOR";
+    role: "CUSTOMER" | "VENDOR" | "ADMIN" | "MODERATOR" | "SUPERADMIN";
     status: "ACTIVE" | "INACTIVE" | "SUSPENDED" | "BANNED";
     lastLoginAt?: Date;
     loginAttempts: number;

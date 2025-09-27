@@ -23,4 +23,5 @@ export declare const getCategories: (req: Request, res: Response, next: NextFunc
 export declare const getCategoryById: (req: Request, res: Response, next: NextFunction) => void;
 export declare const updateCategory: (req: Request, res: Response, next: NextFunction) => void;
 export declare const deleteCategory: (req: Request, res: Response, next: NextFunction) => void;
+export declare const getAdminDashboardStats: (req: Request, res: Response, next: NextFunction) => void;
 //# sourceMappingURL=AdminController.d.ts.map

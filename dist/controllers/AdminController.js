@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteCategory = exports.updateCategory = exports.getCategoryById = exports.getCategories = exports.createCategory = exports.updateOrderStatus = exports.getOrderById = exports.getOrders = exports.updatePaymentStatus = exports.getPaymentById = exports.getPayments = exports.getProductById = exports.updateProductStatus = exports.updateProductApproval = exports.getProducts = exports.moderateReview = exports.getReviewsForModeration = exports.getWalletDetails = exports.updateVendorVerification = exports.getWalletByUserId = exports.getVendorById = exports.getAllVendors = exports.getUserById = exports.getAllUsers = void 0;
+exports.getAdminDashboardStats = exports.deleteCategory = exports.updateCategory = exports.getCategoryById = exports.getCategories = exports.createCategory = exports.updateOrderStatus = exports.getOrderById = exports.getOrders = exports.updatePaymentStatus = exports.getPaymentById = exports.getPayments = exports.getProductById = exports.updateProductStatus = exports.updateProductApproval = exports.getProducts = exports.moderateReview = exports.getReviewsForModeration = exports.getWalletDetails = exports.updateVendorVerification = exports.getWalletByUserId = exports.getVendorById = exports.getAllVendors = exports.getUserById = exports.getAllUsers = void 0;
 const User_1 = require("../models/User");
 const Vendor_1 = require("../models/Vendor");
 const Wallet_1 = require("../models/Wallet");
@@ -173,6 +173,7 @@ exports.getWalletByUserId = (0, errorHandler_1.asyncHandler)(async (req, res, ne
 exports.updateVendorVerification = (0, errorHandler_1.asyncHandler)(async (req, res, next) => {
     const { vendorId } = req.params;
     const { status, moderationReason } = req.body;
+    console.log(status);
     if (!["APPROVED", "REJECTED", "PENDING"].includes(status)) {
         return next((0, errorHandler_1.createError)("Invalid status", 400));
     }
@@ -475,5 +476,88 @@ exports.deleteCategory = (0, errorHandler_1.asyncHandler)(async (req, res, next)
     }
     await Category_1.Category.findByIdAndDelete(req.params.id);
     res.json({ message: "Category deleted" });
+});
+exports.getAdminDashboardStats = (0, errorHandler_1.asyncHandler)(async (req, res, next) => {
+    try {
+        const [totalUsers, activeUsers, inactiveUsers, totalVendors, verifiedVendors, pendingVendors, totalProducts, approvedProducts, pendingProducts, rejectedProducts, totalOrders, totalRevenue, ordersByStatus, totalPayments, totalReviews, pendingReviews, approvedReviews, rejectedReviews, totalCategories,] = await Promise.all([
+            User_1.User.countDocuments(),
+            User_1.User.countDocuments({ status: "ACTIVE" }),
+            User_1.User.countDocuments({ status: "INACTIVE" }),
+            Vendor_1.Vendor.countDocuments(),
+            Vendor_1.Vendor.countDocuments({ verificationStatus: "APPROVED" }),
+            Vendor_1.Vendor.countDocuments({ verificationStatus: "PENDING" }),
+            Product_1.Product.countDocuments(),
+            Product_1.Product.countDocuments({ approvalStatus: "APPROVED" }),
+            Product_1.Product.countDocuments({ approvalStatus: "PENDING" }),
+            Product_1.Product.countDocuments({ approvalStatus: "REJECTED" }),
+            Order_1.Order.countDocuments(),
+            Order_1.Order.aggregate([
+                { $match: { paymentStatus: "PAID" } },
+                {
+                    $group: {
+                        _id: null,
+                        totalRevenue: { $sum: "$totalAmount" },
+                    },
+                },
+            ]),
+            Order_1.Order.aggregate([
+                {
+                    $group: {
+                        _id: "$status",
+                        count: { $sum: 1 },
+                    },
+                },
+            ]),
+            Payment_1.Payment.countDocuments(),
+            Review_1.Review.countDocuments(),
+            Review_1.Review.countDocuments({ status: "PENDING" }),
+            Review_1.Review.countDocuments({ status: "APPROVED" }),
+            Review_1.Review.countDocuments({ status: "REJECTED" }),
+            Category_1.Category.countDocuments(),
+        ]);
+        const revenue = totalRevenue[0]?.totalRevenue || 0;
+        res.status(200).json({
+            success: true,
+            message: "Admin dashboard stats retrieved successfully",
+            data: {
+                users: {
+                    total: totalUsers,
+                    active: activeUsers,
+                    inactive: inactiveUsers,
+                },
+                vendors: {
+                    total: totalVendors,
+                    verified: verifiedVendors,
+                    pending: pendingVendors,
+                },
+                products: {
+                    total: totalProducts,
+                    approved: approvedProducts,
+                    pending: pendingProducts,
+                    rejected: rejectedProducts,
+                },
+                orders: {
+                    total: totalOrders,
+                    revenue,
+                    byStatus: ordersByStatus.reduce((acc, curr) => ({ ...acc, [curr._id]: curr.count }), {}),
+                },
+                payments: {
+                    total: totalPayments,
+                },
+                reviews: {
+                    total: totalReviews,
+                    pending: pendingReviews,
+                    approved: approvedReviews,
+                    rejected: rejectedReviews,
+                },
+                categories: {
+                    total: totalCategories,
+                },
+            },
+        });
+    }
+    catch (error) {
+        next(error);
+    }
 });
 //# sourceMappingURL=AdminController.js.map

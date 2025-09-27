@@ -35,6 +35,7 @@ exports.authenticate = (0, errorHandler_1.asyncHandler)(async (req, res, next) =
 });
 const authorize = (...roles) => {
     return (req, res, next) => {
+        console.log("This is it", req.user);
         if (!req.user) {
             return next((0, errorHandler_1.createError)("Access denied. Please login", 401));
         }

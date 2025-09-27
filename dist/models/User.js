@@ -121,7 +121,7 @@ const userSchema = new mongoose_1.Schema({
     postalCode: String,
     role: {
         type: String,
-        enum: ["CUSTOMER", "VENDOR", "ADMIN", "MODERATOR"],
+        enum: ["CUSTOMER", "VENDOR", "ADMIN", "MODERATOR", "SUPERADMIN"],
         default: "CUSTOMER",
     },
     status: {

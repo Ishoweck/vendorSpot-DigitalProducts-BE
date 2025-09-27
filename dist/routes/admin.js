@@ -34,8 +34,12 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
+const auth_1 = require("../middleware/auth");
 const Admincontrollers = __importStar(require("../controllers/AdminController"));
 const router = (0, express_1.Router)();
+router.use(auth_1.authenticate);
+router.use((0, auth_1.authorize)("ADMIN", "SUPERADMIN"));
+router.get("/dashboard/stats", Admincontrollers.getAdminDashboardStats);
 router.get("/users", Admincontrollers.getAllUsers);
 router.get("/users/:id", Admincontrollers.getUserById);
 router.get("/vendors", Admincontrollers.getAllVendors);
