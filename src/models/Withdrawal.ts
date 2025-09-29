@@ -41,7 +41,7 @@ const withdrawalSchema = new Schema<IWithdrawal>(
     },
     status: {
       type: String,
-      enum: ["PENDING", "SUCCESS", "FAILED", "CANCELLED"],
+      enum: ["PENDING", "APPROVED", "FAILED", "CANCELLED"],
       default: "PENDING",
     },
     gateway: {
@@ -52,7 +52,7 @@ const withdrawalSchema = new Schema<IWithdrawal>(
     withdrawalDetails: {
       bankAccount: { type: String, required: true },
       bankName: { type: String, required: true },
-      accountName: String,
+      accountName: {type: String, required: true},
     },
     failureReason: String,
     paidAt: Date,

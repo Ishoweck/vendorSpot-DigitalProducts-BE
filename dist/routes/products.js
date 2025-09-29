@@ -11,7 +11,7 @@ const downloadSecurityService_1 = require("../services/downloadSecurityService")
 const router = (0, express_1.Router)();
 const upload = (0, multer_1.default)({
     dest: "uploads/",
-    limits: { fileSize: 10 * 1024 * 1024 },
+    limits: { fileSize: 50 * 1024 * 1024 },
 });
 const uploadFields = upload.fields([
     { name: "file", maxCount: 1 },

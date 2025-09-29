@@ -28,6 +28,8 @@ export interface IProduct extends Document {
     | "SUBSCRIPTION";
   licenseDuration?: number;
   downloadLimit?: number;
+  linkUrl?: string;
+  isLink?: boolean; // default: false
   isActive: boolean;
   isFeatured: boolean;
   isApproved: boolean;
@@ -110,6 +112,15 @@ const productSchema = new Schema<IProduct>(
       type: Number,
       default: -1,
     },
+    linkUrl: {
+  type: String,
+},
+
+isLink: {
+  type: Boolean,
+  default: false,
+},
+
     isActive: {
       type: Boolean,
       default: true,

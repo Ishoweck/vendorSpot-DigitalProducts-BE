@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAdminDashboardStats = exports.deleteCategory = exports.updateCategory = exports.getCategoryById = exports.getCategories = exports.createCategory = exports.updateOrderStatus = exports.getOrderById = exports.getOrders = exports.updatePaymentStatus = exports.getPaymentById = exports.getPayments = exports.getProductById = exports.updateProductStatus = exports.updateProductApproval = exports.getProducts = exports.moderateReview = exports.getReviewsForModeration = exports.getWalletDetails = exports.updateVendorVerification = exports.getWalletByUserId = exports.getVendorById = exports.getAllVendors = exports.getUserById = exports.getAllUsers = void 0;
+exports.updateWithdrawalStatus = exports.getAllWithdrawals = exports.getAdminDashboardStats = exports.deleteCategory = exports.updateCategory = exports.getCategoryById = exports.getCategories = exports.createCategory = exports.updateOrderStatus = exports.getOrderById = exports.getOrders = exports.updatePaymentStatus = exports.getPaymentById = exports.getPayments = exports.getProductById = exports.updateProductStatus = exports.deleteProduct = exports.updateProductApproval = exports.getProducts = exports.moderateReview = exports.getReviewsForModeration = exports.getWalletDetails = exports.updateVendorVerification = exports.getWalletByUserId = exports.getVendorById = exports.getAllVendors = exports.getUserById = exports.getAllUsers = void 0;
 const User_1 = require("../models/User");
 const Vendor_1 = require("../models/Vendor");
 const Wallet_1 = require("../models/Wallet");
@@ -12,7 +12,11 @@ const Product_1 = require("../models/Product");
 const Payment_1 = require("../models/Payment");
 const Order_1 = require("../models/Order");
 const Category_1 = require("../models/Category");
+const SocketService_1 = require("../services/SocketService");
+const cloudinaryService_1 = require("../services/cloudinaryService");
+const NotificationController_1 = require("./NotificationController");
 const errorHandler_1 = require("../middleware/errorHandler");
+const Withdrawal_1 = require("../models/Withdrawal");
 const mongoose_1 = __importDefault(require("mongoose"));
 exports.getAllUsers = (0, errorHandler_1.asyncHandler)(async (req, res, next) => {
     const page = parseInt(req.query.page) || 1;
@@ -173,7 +177,6 @@ exports.getWalletByUserId = (0, errorHandler_1.asyncHandler)(async (req, res, ne
 exports.updateVendorVerification = (0, errorHandler_1.asyncHandler)(async (req, res, next) => {
     const { vendorId } = req.params;
     const { status, moderationReason } = req.body;
-    console.log(status);
     if (!["APPROVED", "REJECTED", "PENDING"].includes(status)) {
         return next((0, errorHandler_1.createError)("Invalid status", 400));
     }
@@ -254,6 +257,70 @@ exports.updateProductApproval = (0, errorHandler_1.asyncHandler)(async (req, res
     product.updatedAt = new Date();
     await product.save();
     res.json({ success: true, message: `Product ${approvalStatus.toLowerCase()}`, data: product });
+});
+exports.deleteProduct = (0, errorHandler_1.asyncHandler)(async (req, res, next) => {
+    const user = req.user;
+    const role = user.role;
+    if (role !== "ADMIN" && role !== "SUPERADMIN") {
+        return next((0, errorHandler_1.createError)("Unauthorized", 403));
+    }
+    const product = await Product_1.Product.findOne({ _id: req.params.productId });
+    const vendorId = product.vendorId;
+    if (!vendorId) {
+        console.log("No Vendor Id", vendorId);
+        console.log();
+    }
+    if (!product) {
+        return next((0, errorHandler_1.createError)("Product not found", 404));
+    }
+    const urlsToDelete = [];
+    if (product.fileUrl) {
+        urlsToDelete.push(product.fileUrl);
+    }
+    if (product.thumbnail) {
+        urlsToDelete.push(product.thumbnail);
+    }
+    if (product.images && product.images.length > 0) {
+        urlsToDelete.push(...product.images);
+    }
+    await Product_1.Product.findByIdAndDelete(req.params.productId);
+    if (urlsToDelete.length > 0) {
+        cloudinaryService_1.cloudinaryService.deleteMultipleFiles(urlsToDelete).catch((error) => {
+            console.error("Failed to delete files from Cloudinary:", error);
+        });
+    }
+    try {
+        const io = SocketService_1.SocketService.getIO();
+        io.emit("product:deleted", {
+            productId: req.params.productId,
+            vendorId: product.vendorId,
+        });
+    }
+    catch (error) {
+        console.log("Socket emit error:", error);
+    }
+    try {
+        await (0, NotificationController_1.createNotification)({
+            userId: product.vendorId.toString(),
+            type: "PRODUCT_DISCONTINUED",
+            title: "Product Deleted By Admin",
+            message: `Your product "${product.name}" has been deleted By VendorSpot Admin. If you believe your product was wrongfully deleted, Kindly Contact Support`,
+            category: "PRODUCT",
+            priority: "NORMAL",
+            channels: ["IN_APP"],
+            data: {
+                productId: product._id,
+                productName: product.name,
+            },
+        });
+    }
+    catch (error) {
+        console.error("Failed to create product deletion notification:", error);
+    }
+    res.status(200).json({
+        success: true,
+        message: "Product deleted successfully",
+    });
 });
 exports.updateProductStatus = (0, errorHandler_1.asyncHandler)(async (req, res, next) => {
     const { productId } = req.params;
@@ -559,5 +626,71 @@ exports.getAdminDashboardStats = (0, errorHandler_1.asyncHandler)(async (req, re
     catch (error) {
         next(error);
     }
+});
+exports.getAllWithdrawals = (0, errorHandler_1.asyncHandler)(async (req, res, next) => {
+    let { page = "1", limit = "20", status } = req.query;
+    const pageNum = parseInt(page, 10);
+    const limitNum = parseInt(limit, 10);
+    if (isNaN(pageNum) || pageNum < 1) {
+        return next((0, errorHandler_1.createError)("Invalid page number", 400));
+    }
+    if (isNaN(limitNum) || limitNum < 1) {
+        return next((0, errorHandler_1.createError)("Invalid limit number", 400));
+    }
+    const query = {};
+    if (status) {
+        query.status = status;
+    }
+    const total = await Withdrawal_1.Withdrawal.countDocuments(query);
+    const withdrawals = await Withdrawal_1.Withdrawal.find(query)
+        .sort({ createdAt: -1 })
+        .skip((pageNum - 1) * limitNum)
+        .limit(limitNum);
+    res.status(200).json({
+        success: true,
+        count: withdrawals.length,
+        page: pageNum,
+        totalPages: Math.ceil(total / limitNum),
+        totalWithdrawals: total,
+        data: withdrawals,
+    });
+});
+exports.updateWithdrawalStatus = (0, errorHandler_1.asyncHandler)(async (req, res, next) => {
+    const user = req.user;
+    const { withdrawalId } = req.params;
+    const { status } = req.body;
+    if (!["PENDING", "APPROVED", "REJECTED", "COMPLETED"].includes(status)) {
+        return next((0, errorHandler_1.createError)("Invalid status value", 400));
+    }
+    const withdrawal = await Withdrawal_1.Withdrawal.findById(withdrawalId);
+    if (!withdrawal) {
+        return next((0, errorHandler_1.createError)("Withdrawal not found", 404));
+    }
+    withdrawal.status = status;
+    await withdrawal.save();
+    try {
+        await (0, NotificationController_1.createNotification)({
+            userId: withdrawal.userId.toString(),
+            type: "PAYMENT_SUCCESS",
+            title: "Withdrawal Status Updated",
+            message: `Your withdrawal with reference ${withdrawal.reference} is now ${status}.`,
+            category: "PAYMENT",
+            priority: "HIGH",
+            channels: ["IN_APP"],
+            data: {
+                withdrawalId: withdrawal._id,
+                status,
+                amount: withdrawal.amount,
+            },
+        });
+    }
+    catch (error) {
+        console.error("Failed to create withdrawal status update notification:", error);
+    }
+    res.status(200).json({
+        success: true,
+        message: `Withdrawal status updated to ${status}`,
+        data: withdrawal,
+    });
 });
 //# sourceMappingURL=AdminController.js.map

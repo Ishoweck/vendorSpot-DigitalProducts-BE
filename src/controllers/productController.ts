@@ -16,6 +16,20 @@ import {
   DownloadToken,
 } from "../services/downloadSecurityService";
 
+
+
+function parseBoolean(value: any) {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "string") {
+    return value.toLowerCase() === "true" || value === "1";
+  }
+  if (typeof value === "number") {
+    return value === 1;
+  }
+  return false;
+}
+
+
 export const getProducts = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -239,26 +253,38 @@ export const createProduct = asyncHandler(
       return next(createError("Vendor not found", 404));
     }
 
-    const {
-      name,
-      description,
-      price,
-      originalPrice,
-      discountPercentage,
-      categoryId,
-      tags,
-      features,
-      requirements,
-      instructions,
-      licenseType,
-      licenseDuration,
-      downloadLimit,
-    } = req.body;
+const {
+  name,
+  description,
+  price,
+  originalPrice,
+  discountPercentage,
+  categoryId,
+  tags,
+  features,
+  requirements,
+  instructions,
+  licenseType,
+  licenseDuration,
+  downloadLimit,
+  linkUrl,
+   
+} = req.body;
+
+const isLink = parseBoolean(req.body.isLink);
+
 
     if (!name || !description || !price || !categoryId) {
       return next(createError("All required fields must be provided", 400));
     }
 
+    console.log(isLink);
+    
+
+    
+if (isLink && !linkUrl) {
+  return next(createError("Link URL must be provided for link products", 400));
+}
     const slug = name
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
@@ -312,30 +338,39 @@ export const createProduct = asyncHandler(
       }
     }
 
-    const product = await Product.create({
-      vendorId: vendor._id,
-      categoryId,
-      name,
-      slug,
-      description,
-      price: parseFloat(price),
-      originalPrice: originalPrice ? parseFloat(originalPrice) : undefined,
-      discountPercentage: discountPercentage
-        ? parseFloat(discountPercentage)
-        : undefined,
-      isDigital: true,
-      fileUrl,
-      thumbnail,
-      previewUrl,
-      images,
-      tags: tags ? JSON.parse(tags) : [],
-      features: features ? JSON.parse(features) : [],
-      requirements,
-      instructions,
-      licenseType,
-      licenseDuration: licenseDuration ? parseInt(licenseDuration) : undefined,
-      downloadLimit: downloadLimit ? parseInt(downloadLimit) : -1,
-    });
+    console.log("isLink:", isLink);
+    console.log("linkUrl:", linkUrl);
+
+
+const product = await Product.create({
+  vendorId: vendor._id,
+  categoryId,
+  name,
+  slug,
+  description,
+  price: parseFloat(price),
+  originalPrice: originalPrice ? parseFloat(originalPrice) : undefined,
+  discountPercentage: discountPercentage
+    ? parseFloat(discountPercentage)
+    : undefined,
+  isDigital: !isLink,
+  isLink: isLink === true, // handle form input
+  linkUrl: isLink ? linkUrl : undefined,
+  fileUrl: isLink ? "" : fileUrl,
+  thumbnail,
+  previewUrl,
+  images,
+  tags: tags ? JSON.parse(tags) : [],
+  features: features ? JSON.parse(features) : [],
+  requirements,
+  instructions,
+  licenseType,
+  licenseDuration: licenseDuration ? parseInt(licenseDuration) : undefined,
+  downloadLimit: downloadLimit ? parseInt(downloadLimit) : -1,
+});
+
+  console.log("Created product:", product);
+
 
     try {
       const io = SocketService.getIO();
@@ -407,16 +442,30 @@ export const updateProduct = asyncHandler(
       licenseType,
       licenseDuration,
       downloadLimit,
+      isLink,
+      linkUrl,
     } = req.body;
 
-    if (req.files) {
+    const isLinkProduct = isLink === "true" || isLink === true;
+
+    // Prevent file upload for link products
+    if (
+      isLinkProduct &&
+      req.files &&
+      typeof req.files === "object" &&
+      !Array.isArray(req.files) &&
+      "file" in req.files
+    ) {
+      return next(createError("Cannot upload files for link-based products", 400));
+    }
+
+    // File upload handling
+    if (req.files && typeof req.files === "object" && !Array.isArray(req.files)) {
       const files = req.files as { [fieldname: string]: Express.Multer.File[] };
 
-      if (files.file && files.file[0]) {
+      if (files.file && files.file[0] && !isLinkProduct) {
         if (product.fileUrl) {
-          const oldPublicId = cloudinaryService.extractPublicId(
-            product.fileUrl
-          );
+          const oldPublicId = cloudinaryService.extractPublicId(product.fileUrl);
           if (oldPublicId) {
             await cloudinaryService.deleteFile(oldPublicId);
           }
@@ -432,9 +481,7 @@ export const updateProduct = asyncHandler(
 
       if (files.thumbnail && files.thumbnail[0]) {
         if (product.thumbnail) {
-          const oldPublicId = cloudinaryService.extractPublicId(
-            product.thumbnail
-          );
+          const oldPublicId = cloudinaryService.extractPublicId(product.thumbnail);
           if (oldPublicId) {
             await cloudinaryService.deleteFile(oldPublicId);
           }
@@ -449,9 +496,7 @@ export const updateProduct = asyncHandler(
 
       if (files.preview && files.preview[0]) {
         if (product.previewUrl) {
-          const oldPublicId = cloudinaryService.extractPublicId(
-            product.previewUrl
-          );
+          const oldPublicId = cloudinaryService.extractPublicId(product.previewUrl);
           if (oldPublicId) {
             await cloudinaryService.deleteFile(oldPublicId);
           }
@@ -466,28 +511,21 @@ export const updateProduct = asyncHandler(
 
       if (files.images) {
         if (product.images && product.images.length > 0) {
-          await cloudinaryService
-            .deleteMultipleFiles(product.images)
-            .catch((error) => {
-              console.error(
-                "Failed to delete old images from Cloudinary:",
-                error
-              );
-            });
+          await cloudinaryService.deleteMultipleFiles(product.images).catch((error) => {
+            console.error("Failed to delete old images from Cloudinary:", error);
+          });
         }
 
         const newImages: string[] = [];
         for (const image of files.images) {
-          const imageUpload = await cloudinaryService.uploadFile(
-            image,
-            "products/images"
-          );
+          const imageUpload = await cloudinaryService.uploadFile(image, "products/images");
           newImages.push(imageUpload.url);
         }
         product.images = newImages;
       }
     }
 
+    // Field updates
     if (name) {
       product.name = name;
       product.slug = name
@@ -498,13 +536,9 @@ export const updateProduct = asyncHandler(
     if (description) product.description = description;
     if (price) product.price = parseFloat(price);
     if (originalPrice !== undefined)
-      product.originalPrice = originalPrice
-        ? parseFloat(originalPrice)
-        : undefined;
+      product.originalPrice = originalPrice ? parseFloat(originalPrice) : undefined;
     if (discountPercentage !== undefined)
-      product.discountPercentage = discountPercentage
-        ? parseFloat(discountPercentage)
-        : undefined;
+      product.discountPercentage = discountPercentage ? parseFloat(discountPercentage) : undefined;
     if (categoryId) product.categoryId = categoryId;
     if (tags) product.tags = JSON.parse(tags);
     if (features) product.features = JSON.parse(features);
@@ -512,14 +546,28 @@ export const updateProduct = asyncHandler(
     if (instructions !== undefined) product.instructions = instructions;
     if (licenseType) product.licenseType = licenseType;
     if (licenseDuration !== undefined)
-      product.licenseDuration = licenseDuration
-        ? parseInt(licenseDuration)
-        : undefined;
+      product.licenseDuration = licenseDuration ? parseInt(licenseDuration) : undefined;
     if (downloadLimit !== undefined)
       product.downloadLimit = downloadLimit ? parseInt(downloadLimit) : -1;
 
+    // Link vs File handling
+    if (isLinkProduct) {
+      if (!linkUrl) {
+        return next(createError("Link URL must be provided for link-based products", 400));
+      }
+      product.isLink = true;
+      product.linkUrl = linkUrl;
+      product.isDigital = false;
+      product.fileUrl = ""; // Clear fileUrl if previously uploaded
+    } else {
+      product.isLink = false;
+      product.linkUrl = undefined;
+      product.isDigital = true;
+    }
+
     await product.save();
 
+    // Emit socket event
     try {
       const io = SocketService.getIO();
       io.emit("product:updated", {
@@ -531,6 +579,7 @@ export const updateProduct = asyncHandler(
       console.log("Socket emit error:", error);
     }
 
+    // Create notification
     try {
       await createNotification({
         userId: vendor.userId.toString(),
@@ -563,6 +612,8 @@ export const deleteProduct = asyncHandler(
     const user = req.user as any;
     const vendor = await Vendor.findOne({ userId: user._id });
 
+   
+    
     if (!vendor) {
       return next(createError("Vendor not found", 404));
     }
@@ -677,6 +728,7 @@ export const downloadProductFile = asyncHandler(
 
       const orderItem = order.items[orderItemIndex];
 
+      // === DOWNLOAD LIMIT CHECK ===
       if (
         orderItem.downloadLimit &&
         orderItem.downloadLimit > 0 &&
@@ -701,6 +753,7 @@ export const downloadProductFile = asyncHandler(
         );
       }
 
+      // === LICENSE EXPIRY CHECK ===
       if (product.licenseDuration && order.deliveredAt) {
         const licenseExpiryDate = new Date(
           order.deliveredAt.getTime() +
@@ -714,7 +767,7 @@ export const downloadProductFile = asyncHandler(
             "FAILED",
             {
               reason: "License expired",
-              licenseExpiryDate: licenseExpiryDate,
+              licenseExpiryDate,
               licenseDuration: product.licenseDuration,
               deliveredAt: order.deliveredAt,
               ip: req.ip,
@@ -724,7 +777,50 @@ export const downloadProductFile = asyncHandler(
           return next(createError("License has expired", 403));
         }
       }
+        console.log(product);
+        
+      // === ✅ LINK-BASED PRODUCT HANDLING ===
+      if (product.isLink && product.linkUrl) {
+        await Order.updateOne(
+          {
+            _id: order._id,
+            "items.productId": productId,
+          },
+          {
+            $inc: { [`items.${orderItemIndex}.downloadCount`]: 1 },
+            $set: { [`items.${orderItemIndex}.lastDownloadAt`]: new Date() },
+          }
+        );
 
+        await logDownloadActivity(
+          user._id,
+          productId,
+          orderId as string,
+          "INITIATED",
+          {
+            linkUrl: product.linkUrl,
+            downloadCount: (orderItem.downloadCount || 0) + 1,
+            ip: req.ip,
+            userAgent: req.get("User-Agent"),
+          }
+        );
+
+        // ✅ RETURN to prevent continuing into file logic
+        return res.status(200).json({
+          success: true,
+          data: {
+            linkUrl: product.linkUrl,
+            isLink: true,
+            remainingDownloads:
+              orderItem.downloadLimit === -1
+                ? -1
+                : orderItem.downloadLimit - (orderItem.downloadCount + 1),
+            expiresAt: new Date(Date.now() + 15 * 60 * 1000),
+          },
+        });
+      }
+
+      // === FILE-BASED PRODUCT HANDLING ===
       if (!product.fileUrl) {
         return next(createError("Product file not available", 404));
       }
@@ -748,17 +844,12 @@ export const downloadProductFile = asyncHandler(
         return next(createError("Invalid file URL", 500));
       }
 
-      console.log("Extracted public ID:", publicId);
-      console.log("Safe filename:", safeFilename);
-     const downloadUrl = cloudinary.url(publicId, {
-  resource_type: "raw",
-  flags: "attachment",
-  attachment: safeFilename,
-   secure: true, 
-});
-
-
-      console.log("Generated download URL:", downloadUrl);
+      const downloadUrl = cloudinary.url(publicId, {
+        resource_type: "raw",
+        flags: "attachment",
+        attachment: safeFilename,
+        secure: true,
+      });
 
       await Order.updateOne(
         {
@@ -786,7 +877,7 @@ export const downloadProductFile = asyncHandler(
         }
       );
 
-      res.status(200).json({
+      return res.status(200).json({
         success: true,
         data: {
           downloadUrl,
@@ -816,6 +907,9 @@ export const downloadProductFile = asyncHandler(
     }
   }
 );
+
+
+
 
 function extractPublicIdFromCloudinaryUrl(url: string): string | null {
   try {

@@ -7,8 +7,12 @@ import { Product } from "../models/Product";
 import { Payment } from "../models/Payment";
 import { Order, IOrder } from "../models/Order";
 import { Category, ICategory } from "../models/Category";
-
+import { SocketService } from "../services/SocketService";
+import { cloudinaryService } from "../services/cloudinaryService";
+import { createNotification } from "./NotificationController";
 import { asyncHandler, createError } from "../middleware/errorHandler";
+import { Withdrawal } from "../models/Withdrawal";
+
 import mongoose, { FilterQuery } from "mongoose";
 
 interface QueryFilters {
@@ -353,6 +357,85 @@ export const updateProductApproval = asyncHandler(
     await product.save();
 
     res.json({ success: true, message: `Product ${approvalStatus.toLowerCase()}`, data: product });
+  }
+);
+
+export const deleteProduct = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const user = req.user as any;
+    const role = user.role;
+
+    if (role !== "ADMIN" && role !== "SUPERADMIN") {
+      return next(createError("Unauthorized", 403));
+    }
+
+    const product = await Product.findOne({ _id: req.params.productId });
+
+  const vendorId = product!.vendorId
+
+    if(!vendorId){
+      console.log("No Vendor Id", vendorId);
+      console.log();
+      
+      
+    }
+
+    if (!product) {
+      return next(createError("Product not found", 404));
+    }
+
+    const urlsToDelete: string[] = [];
+
+    if (product.fileUrl) {
+      urlsToDelete.push(product.fileUrl);
+    }
+    if (product.thumbnail) {
+      urlsToDelete.push(product.thumbnail);
+    }
+    if (product.images && product.images.length > 0) {
+      urlsToDelete.push(...product.images);
+    }
+
+    await Product.findByIdAndDelete(req.params.productId);
+
+    if (urlsToDelete.length > 0) {
+      cloudinaryService.deleteMultipleFiles(urlsToDelete).catch((error) => {
+        console.error("Failed to delete files from Cloudinary:", error);
+      });
+    }
+
+    try {
+      const io = SocketService.getIO();
+      io.emit("product:deleted", {
+        productId: req.params.productId,
+        vendorId: product.vendorId,
+      });
+    } catch (error) {
+      console.log("Socket emit error:", error);
+    }
+
+    try {
+      await createNotification({
+        userId: product.vendorId.toString(),  
+        type: "PRODUCT_DISCONTINUED",
+        title: "Product Deleted By Admin",
+        message: `Your product "${product.name}" has been deleted By VendorSpot Admin. If you believe your product was wrongfully deleted, Kindly Contact Support`,
+        category: "PRODUCT",
+        priority: "NORMAL",
+        channels: ["IN_APP"],
+        data: {
+          productId: product._id,
+          productName: product.name,
+        },
+      });
+    } catch (error) {
+      console.error("Failed to create product deletion notification:", error);
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Product deleted successfully",
+    });
   }
 );
 
@@ -798,5 +881,89 @@ export const getAdminDashboardStats = asyncHandler(
     } catch (error) {
       next(error);
     }
+  }
+);
+
+
+
+export const getAllWithdrawals = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    let { page = "1", limit = "20", status } = req.query;
+
+    const pageNum = parseInt(page as string, 10);
+    const limitNum = parseInt(limit as string, 10);
+
+    if (isNaN(pageNum) || pageNum < 1) {
+      return next(createError("Invalid page number", 400));
+    }
+    if (isNaN(limitNum) || limitNum < 1) {
+      return next(createError("Invalid limit number", 400));
+    }
+
+    const query: any = {};
+    if (status) {
+      query.status = status;
+    }
+
+    const total = await Withdrawal.countDocuments(query);
+    const withdrawals = await Withdrawal.find(query)
+      .sort({ createdAt: -1 })
+      .skip((pageNum - 1) * limitNum)
+      .limit(limitNum);
+
+    res.status(200).json({
+      success: true,
+      count: withdrawals.length,
+      page: pageNum,
+      totalPages: Math.ceil(total / limitNum),
+      totalWithdrawals: total,
+      data: withdrawals,
+    });
+  }
+);
+
+export const updateWithdrawalStatus = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const user = req.user as any;
+
+    const { withdrawalId } = req.params;
+    const { status } = req.body;
+
+    if (!["PENDING", "APPROVED", "REJECTED", "COMPLETED"].includes(status)) {
+      return next(createError("Invalid status value", 400));
+    }
+
+    const withdrawal = await Withdrawal.findById(withdrawalId);
+    if (!withdrawal) {
+      return next(createError("Withdrawal not found", 404));
+    }
+
+    withdrawal.status = status;
+    await withdrawal.save();
+
+    try {
+      await createNotification({
+        userId: withdrawal.userId.toString(),
+        type: "PAYMENT_SUCCESS",
+        title: "Withdrawal Status Updated",
+        message: `Your withdrawal with reference ${withdrawal.reference} is now ${status}.`,
+        category: "PAYMENT",
+        priority: "HIGH",
+        channels: ["IN_APP"],
+        data: {
+          withdrawalId: withdrawal._id,
+          status,
+          amount: withdrawal.amount,
+        },
+      });
+    } catch (error) {
+      console.error("Failed to create withdrawal status update notification:", error);
+    }
+
+    res.status(200).json({
+      success: true,
+      message: `Withdrawal status updated to ${status}`,
+      data: withdrawal,
+    });
   }
 );

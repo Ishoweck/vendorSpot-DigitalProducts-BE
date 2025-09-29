@@ -22,6 +22,8 @@ export interface IProduct extends Document {
     licenseType?: "SINGLE_USE" | "MULTIPLE_USE" | "UNLIMITED" | "TIME_LIMITED" | "SUBSCRIPTION";
     licenseDuration?: number;
     downloadLimit?: number;
+    linkUrl?: string;
+    isLink?: boolean;
     isActive: boolean;
     isFeatured: boolean;
     isApproved: boolean;

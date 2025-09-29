@@ -10,6 +10,7 @@ export declare const getReviewsForModeration: (req: Request, res: Response, next
 export declare const moderateReview: (req: Request, res: Response, next: NextFunction) => void;
 export declare const getProducts: (req: Request, res: Response, next: NextFunction) => void;
 export declare const updateProductApproval: (req: Request, res: Response, next: NextFunction) => void;
+export declare const deleteProduct: (req: Request, res: Response, next: NextFunction) => void;
 export declare const updateProductStatus: (req: Request, res: Response, next: NextFunction) => void;
 export declare const getProductById: (req: Request, res: Response, next: NextFunction) => void;
 export declare const getPayments: (req: Request, res: Response, next: NextFunction) => void;
@@ -24,4 +25,6 @@ export declare const getCategoryById: (req: Request, res: Response, next: NextFu
 export declare const updateCategory: (req: Request, res: Response, next: NextFunction) => void;
 export declare const deleteCategory: (req: Request, res: Response, next: NextFunction) => void;
 export declare const getAdminDashboardStats: (req: Request, res: Response, next: NextFunction) => void;
+export declare const getAllWithdrawals: (req: Request, res: Response, next: NextFunction) => void;
+export declare const updateWithdrawalStatus: (req: Request, res: Response, next: NextFunction) => void;
 //# sourceMappingURL=AdminController.d.ts.map

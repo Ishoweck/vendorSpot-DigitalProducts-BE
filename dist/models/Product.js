@@ -103,6 +103,13 @@ const productSchema = new mongoose_1.Schema({
         type: Number,
         default: -1,
     },
+    linkUrl: {
+        type: String,
+    },
+    isLink: {
+        type: Boolean,
+        default: false,
+    },
     isActive: {
         type: Boolean,
         default: true,

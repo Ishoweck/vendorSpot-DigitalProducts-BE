@@ -72,14 +72,18 @@ router.patch("/reviews/:reviewId/moderate", Admincontrollers.moderateReview);
 
 // PRODUCTS
 router.get("/products", Admincontrollers.getProducts);
+router.delete("/products/:productId", Admincontrollers.deleteProduct);
 router.get("/products/:productId", Admincontrollers.getProductById);
-router.patch("/products/:productId/approval", Admincontrollers.updateProductApproval);
+router.patch("/products/:productId/approve", Admincontrollers.updateProductApproval);
 router.patch("/products/:productId/status", Admincontrollers.updateProductStatus);
 
 // PAYMENTS
 router.get("/payments", Admincontrollers.getPayments);
 router.get("/payments/:paymentId", Admincontrollers.getPaymentById);
 router.patch("/payments/:paymentId/status", Admincontrollers.updatePaymentStatus);
+
+router.get("/withdrawals", Admincontrollers.getAllWithdrawals);
+router.patch("/withdrawals/:withdrawalId/status", Admincontrollers.updateWithdrawalStatus);
 
 // ORDERS
 router.get("/orders", Admincontrollers.getOrders);
