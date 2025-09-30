@@ -563,7 +563,7 @@ exports.getAdminDashboardStats = (0, errorHandler_1.asyncHandler)(async (req, re
                 {
                     $group: {
                         _id: null,
-                        totalRevenue: { $sum: "$totalAmount" },
+                        totalRevenue: { $sum: "$total" },
                     },
                 },
             ]),

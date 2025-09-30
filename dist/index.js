@@ -35,6 +35,7 @@ const notifications_1 = __importDefault(require("./routes/notifications"));
 const webhooks_1 = __importDefault(require("./routes/webhooks"));
 const SocketService_1 = require("./services/SocketService");
 const wallet_1 = __importDefault(require("./routes/wallet"));
+const deletionRequest_1 = __importDefault(require("./routes/deletionRequest"));
 dotenv_1.default.config();
 class App {
     app;
@@ -131,6 +132,7 @@ class App {
         this.app.use("/api/reviews", reviews_1.default);
         this.app.use("/api/webhooks", webhooks_1.default);
         this.app.use("/api/wallet", wallet_1.default);
+        this.app.use("/api/deletion", deletionRequest_1.default);
     }
     initializeErrorHandling() {
         this.app.use(notFoundHandler_1.notFoundHandler);
