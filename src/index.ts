@@ -1,6 +1,7 @@
 import 'module-alias/register';
 import "reflect-metadata";
 import "express-async-errors";
+import cron from "node-cron";
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
@@ -30,6 +31,7 @@ import notificationRoutes from "./routes/notifications";
 import webhookRoutes from "./routes/webhooks";
 import { SocketService } from "./services/SocketService";
 import walletRoutes from "./routes/wallet";
+import deletionRoutes from "./routes/deletionRequest";
 
 
 
@@ -151,6 +153,7 @@ class App {
     this.app.use("/api/reviews", reviewRoutes);
     this.app.use("/api/webhooks", webhookRoutes);
     this.app.use("/api/wallet", walletRoutes);
+    this.app.use("/api/deletion", deletionRoutes);
 
   }
 
@@ -205,6 +208,14 @@ class App {
     }
   }
 }
+
+
+// CRON JOBS
+// cron.schedule("0 0 * * *", () => {
+//   deactivateInactiveVendors();
+// });
+
+
 
 const app = new App();
 app.start();

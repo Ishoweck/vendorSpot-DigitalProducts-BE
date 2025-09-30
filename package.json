@@ -37,6 +37,7 @@
     "mongoose": "^8.0.3",
     "morgan": "^1.10.0",
     "multer": "^2.0.0-rc.3",
+    "node-cron": "^4.2.1",
     "paystack": "^2.0.1",
     "reflect-metadata": "^0.1.13",
     "resend": "^2.1.0",
@@ -80,7 +81,6 @@
   ],
   "author": "Vendorspot Team",
   "license": "MIT",
-
   "_moduleAliases": {
     "@": "dist",
     "@/config": "dist/config",

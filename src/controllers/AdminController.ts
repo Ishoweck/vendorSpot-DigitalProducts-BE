@@ -810,7 +810,7 @@ export const getAdminDashboardStats = asyncHandler(
           {
             $group: {
               _id: null,
-              totalRevenue: { $sum: "$totalAmount" },
+              totalRevenue: { $sum: "$total" },
             },
           },
         ]),
