@@ -12,7 +12,6 @@ async function approveProducts() {
     const result = await Product.updateMany(
       { isApproved: false },
       { 
-        
         isApproved: true, 
         approvalStatus: "APPROVED" 
       }
