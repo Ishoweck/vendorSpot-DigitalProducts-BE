@@ -18,7 +18,6 @@ async function approveProducts() {
     );
 
     console.log(`Approved ${result.modifiedCount} products`);
-
     
     console.log("All products are now approved and visible on the frontend!");
     
