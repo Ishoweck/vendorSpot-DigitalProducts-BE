@@ -13,9 +13,8 @@ async function approveProducts() {
       { isApproved: false },
       { 
 
-
-        isApproved: true, 
         
+        isApproved: true, 
         approvalStatus: "APPROVED" 
       }
     );
