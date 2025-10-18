@@ -6642,3 +6642,9 @@
 {"level":"info","message":"✅ MongoDB connected successfully","service":"vendorspot-api","timestamp":"2025-09-30 14:46:23"}
 {"level":"info","message":"SIGINT received, shutting down gracefully","service":"vendorspot-api","timestamp":"2025-09-30 14:51:53"}
 {"level":"info","message":"SIGINT received, shutting down gracefully","service":"vendorspot-api","timestamp":"2025-09-30 14:51:53"}
+{"level":"info","message":"User disconnected:","service":"vendorspot-api","timestamp":"2025-09-30 14:58:00"}
+{"level":"info","message":"Resend email service initialized","service":"vendorspot-api","timestamp":"2025-10-02 17:42:44"}
+{"level":"info","message":"Socket.IO initialized successfully","service":"vendorspot-api","timestamp":"2025-10-02 17:42:48"}
+{"level":"info","message":"🚀 Server running on port 5000 in development mode","service":"vendorspot-api","timestamp":"2025-10-02 17:42:48"}
+{"level":"info","message":"Health Check: http://localhost:5000/health","service":"vendorspot-api","timestamp":"2025-10-02 17:42:48"}
+{"level":"info","message":"✅ MongoDB connected successfully","service":"vendorspot-api","timestamp":"2025-10-02 17:42:59"}
